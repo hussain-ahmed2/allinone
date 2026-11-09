@@ -142,8 +142,12 @@ new RateLimiter(max, windowSeconds)  .allow(key): boolean
 createLogger(sink): { info, warn, error }      // structured JSON lines
 createSmtpMailer(opts): NotificationProvider    // nodemailer SMTP + templates
 escapeHtml(s) / renderTemplate(tpl, vars)
-createWorkflowEngine(): WorkflowEngine          // tasks, approvals, retries
+createWorkflowEngine(): WorkflowEngine         // tasks, approvals, retries
 Workflows: engine.register/define/start/execute/approve/reject/history (tenant-scoped)
+createScheduler(): Scheduler                   // cron (5-field, UTC) + overlap guard
+parseCron(expr) / nextRunAfter(expr, from) — pure next-fire calculator
+searchAcross(adapter, collection, { query, fields, tenantId? }) — OR substring search
+createSearchIndex(): MemorySearchIndex         // tokenized, prefix, tenant-scoped
 buildAdminManifest({ actor, tenantId, rolesById, config? }): AdminManifest
 createWorkflowEngine(): WorkflowEngine         // tasks, approvals, conditionals, retries
 WorkflowEngine.register(name, handler) / .define(definition)

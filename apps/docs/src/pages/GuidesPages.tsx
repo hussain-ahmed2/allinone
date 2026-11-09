@@ -350,6 +350,17 @@ await engine.execute(run.id);   // pauses at waiting-approval
 await engine.approve(run.id);   // resumes → completes
 await engine.reject(run.id);    // or cancels terminally`}
       </Code>
+      <Code title="Scheduler (cron, UTC) + search">
+        {`const scheduler = createScheduler();
+scheduler.schedule({ cron: "*/5 9-17 * * 1-5", tenantId, handler: async () => runReport() });
+nextRunAfter("0 9 * * 1", new Date()); // pure next-fire calculator
+
+// Adapter-backed search (OR across fields) or a standalone token index:
+const hits = await searchAcross(db, "posts", { query: "deploy", fields: ["title", "body"] });
+const index = createSearchIndex();
+index.add({ id: "p1", tenantId, text: "Deploying production guides" });
+index.search({ tenantId, query: "deploy guides" });`}
+      </Code>
       <Note>
         Email: <code>{"createSmtpMailer({ host, user, pass, from })"}</code> implements the shared{" "}
         <code>NotificationProvider</code> interface — inject a fake <code>sendMail</code> for tests.

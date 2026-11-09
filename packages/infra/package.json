@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@allinone/auth": "workspace:*",
+    "@allinone/database": "workspace:*",
     "nodemailer": "^10.4.0"
   }
 }

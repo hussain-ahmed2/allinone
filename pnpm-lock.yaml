@@ -227,6 +227,9 @@ importers:
       '@allinone/auth':
         specifier: workspace:*
         version: link:../auth
+      '@allinone/database':
+        specifier: workspace:*
+        version: link:../database
       nodemailer:
         specifier: ^10.4.0
         version: 10.4.0

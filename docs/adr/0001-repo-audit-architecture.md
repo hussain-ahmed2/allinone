@@ -51,7 +51,8 @@ assumed framework API.
 | Phase 7j  | Email notifications (Nodemailer SMTP)                  | ✅ done                                                            |
 | Phase 7k  | Workflows engine (approvals, retries, history)         | ✅ done                                                            |
 | Phase 7l  | MSSQL adapter (T-SQL JSON_VALUE, RLS session ctx)      | ✅ done                                                            |
-| Phase 7m+ | Redis permission cache wiring, scheduler, search       | ⬜ next                                                            |
+| Phase 7m  | Redis permission cache wiring + scheduler + search     | ✅ done                                                            |
+| Phase 7n+ | Coverage audit, email-flow polish, admin APIs          | ⬜ next                                                            |
 
 ## Threat model (summary)
 
