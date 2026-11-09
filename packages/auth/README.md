@@ -29,6 +29,36 @@ auth.disableTotp(userId, code);
 Recovery codes are stored only as SHA-256 hashes. Each Totp counter is
 accepted at most once per user.
 
+## Passkeys (WebAuthn)
+
+```ts
+// Configure RP (relying party) via platform config:
+const platform = createPlatform({
+  database: { adapter: "memory" },
+  auth: {
+    passkeys: {
+      enabled: true,
+      rpID: "app.example.com",
+      rpName: "My App",
+      origin: "https://app.example.com",
+    },
+  },
+});
+
+// Ceremonies (your browser component calls navigator.credentials).
+const { options, challenge } = await auth.beginPasskeyRegistration(userId);
+const { credentialId } = await auth.finishPasskeyRegistration(userId, challenge, response);
+
+const { challenge: authChallenge } = await auth.beginPasskeyAuthentication();
+const { user } = await auth.finishPasskeyAuthentication(authChallenge, response);
+auth.removePasskey(userId, credentialId);
+```
+
+Challenges are single-use with 5-minute expiry. Sign-counts must strictly
+increase (cloned authenticators are rejected); a credential belongs to
+exactly one user. Verification delegates to `@simplewebauthn/server` —
+never custom crypto.
+
 ## SSO (OIDC + PKCE)
 
 ```ts

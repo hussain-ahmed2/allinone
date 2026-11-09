@@ -158,10 +158,29 @@ export function AuthPage() {
         Totp codes are RFC 6238 verified (8 RFC vectors) and replay-proof per user. Recovery codes
         are single-use, stored hashed, shown once at enrollment.
       </Note>
+      <Section eyebrow="Guides" title="Passkeys (WebAuthn)">
+        <p>
+          Phishing-resistant passkeys via <code>@simplewebauthn/server</code>. Challenges are
+          single-use (5 min), sign-counts reject clones, and one credential maps to one user
+          globally.
+        </p>
+        <Code>
+          {`const { options, challenge } = await auth.beginPasskeyRegistration(userId);
+const { credentialId } = await auth.finishPasskeyRegistration(userId, challenge, response);
+
+const { challenge: authChallenge } = await auth.beginPasskeyAuthentication();
+const { user } = await auth.finishPasskeyAuthentication(authChallenge, response);
+
+auth.listPasskeys(userId);
+auth.removePasskey(userId, credentialId);
+// Configure RP via platform config:
+// auth: { passkeys: { enabled: true, rpID: "app.example.com",
+//                      rpName: "My App", origin: "https://app.example.com" } }`}
+        </Code>
+      </Section>
     </>
   );
 }
-
 const SSO_EXAMPLE = `import { createOidcProvider } from "@allinone/auth";
 
 const provider = createOidcProvider({

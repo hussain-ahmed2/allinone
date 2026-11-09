@@ -20,6 +20,7 @@ import {
   type RecoveryCodeSet,
 } from "./totp.js";
 import type { OidcUser } from "./oidc.js";
+import { PasskeyService, type PasskeysOptions } from "./passkeys.js";
 
 /* ------------------------------------------------------------------ */
 /* Identity entities                                                    */
@@ -211,6 +212,8 @@ export interface AuthOptions {
   maxLoginAttempts?: number;
   lockoutSeconds?: number;
   sessionMaxAgeSeconds?: number;
+  /** WebAuthn passkeys (rpID/rpName/origin + injectable verifiers). */
+  passkeys?: PasskeysOptions;
 }
 
 /**
@@ -230,6 +233,7 @@ export class AuthService {
   readonly #failures = new Map<string, { count: number; lockedUntil: number }>();
   readonly #usedRefresh = new Set<string>(); // rotated-away hashes — reuse = compromise
   readonly #totpVerifier = new TotpVerifier();
+  readonly #passkeys: PasskeyService;
   readonly #pendingTotp = new Map<string, Buffer>(); // userId -> unconfirmed secret
   readonly #mfa = new Map<
     string,
@@ -243,6 +247,7 @@ export class AuthService {
     this.#maxAttempts = options.maxLoginAttempts ?? 5;
     this.#lockoutSeconds = options.lockoutSeconds ?? 15 * 60;
     this.#sessionMaxAge = options.sessionMaxAgeSeconds ?? 60 * 60 * 24 * 7;
+    this.#passkeys = new PasskeyService(options.passkeys ?? {});
   }
 
   async register(input: { email: string; password: string; name: string }): Promise<User> {
@@ -422,6 +427,61 @@ export class AuthService {
     const entry = this.#mfa.get(userId);
     if (!entry?.enabled) return false;
     return consumeRecoveryCode(entry.recoveryHashes, code).consumed;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Passkeys (WebAuthn)                                              */
+  /* ---------------------------------------------------------------- */
+
+  /** Begin passkey registration for a user. */
+  async beginPasskeyRegistration(userId: string): Promise<{ options: unknown; challenge: string }> {
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    if (user.suspended) throw new Error("[allinone/auth] Account suspended");
+    return this.#passkeys.beginRegistration({
+      userId,
+      userName: user.email,
+      displayName: user.name,
+    });
+  }
+
+  /** Finish passkey registration — pass the challenge back from begin. */
+  async finishPasskeyRegistration(
+    userId: string,
+    challenge: string,
+    response: Parameters<PasskeyService["finishRegistration"]>[0]["response"],
+  ): Promise<{ credentialId: string }> {
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    if (user.suspended) throw new Error("[allinone/auth] Account suspended");
+    return this.#passkeys.finishRegistration({ userId, challenge, response });
+  }
+
+  /** Begin passkey authentication (discoverable — no user list needed). */
+  async beginPasskeyAuthentication(): Promise<{ options: unknown; challenge: string }> {
+    return this.#passkeys.beginAuthentication();
+  }
+
+  /** Finish passkey authentication — pass the challenge back from begin. */
+  async finishPasskeyAuthentication(
+    challenge: string,
+    response: Parameters<PasskeyService["finishAuthentication"]>[0]["response"],
+  ): Promise<{ user: User; signCount: number }> {
+    const result = await this.#passkeys.finishAuthentication({ challenge, response });
+    const user = this.#users.get(result.userId);
+    if (!user) throw new Error("[allinone/auth] Passkey owner missing");
+    if (user.suspended) throw new Error("[allinone/auth] Account suspended");
+    return { user, signCount: result.signCount };
+  }
+
+  /** List a user's registered passkeys. */
+  listPasskeys(userId: string) {
+    return this.#passkeys.listCredentials(userId);
+  }
+
+  /** Remove one of a user's passkeys. Returns false when unknown. */
+  removePasskey(userId: string, credentialId: string): boolean {
+    return this.#passkeys.removeCredential(userId, credentialId);
   }
 
   /* ---------------------------------------------------------------- */

@@ -49,6 +49,13 @@ export interface SessionConfig {
   rotateRefreshTokens: boolean;
 }
 
+export interface PasskeysConfig {
+  enabled: boolean;
+  rpID: string;
+  rpName: string;
+  origin: string | readonly string[];
+}
+
 /** OAuth 2.0 / OIDC provider (SSO). Secrets should come from env. */
 export interface OAuthProviderConfig {
   /** Stable local id, e.g. "google" | "okta" | "keycloak". */
@@ -64,6 +71,7 @@ export interface AuthConfig {
   enabled: boolean;
   mfa: boolean;
   passwordless: boolean;
+  passkeys: PasskeysConfig;
   /** SSO / OIDC providers (e.g. Google, Okta, Keycloak). */
   providers: readonly OAuthProviderConfig[];
   session: SessionConfig;
@@ -148,6 +156,12 @@ export const platformDefaults: ResolvedPlatformConfig = {
     enabled: true,
     mfa: false,
     passwordless: false,
+    passkeys: {
+      enabled: false,
+      rpID: "localhost",
+      rpName: "allinone",
+      origin: "http://localhost:5173",
+    },
     providers: [],
     session: {
       secure: true,

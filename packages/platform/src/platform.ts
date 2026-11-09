@@ -124,6 +124,15 @@ export class Platform {
       maxLoginAttempts: this.config.auth.maxLoginAttempts,
       lockoutSeconds: this.config.auth.lockoutSeconds,
       sessionMaxAgeSeconds: this.config.auth.session.maxAgeSeconds,
+      ...(this.config.auth.passkeys.enabled
+        ? {
+            passkeys: {
+              rpID: this.config.auth.passkeys.rpID,
+              rpName: this.config.auth.passkeys.rpName,
+              origin: this.config.auth.passkeys.origin,
+            },
+          }
+        : {}),
     });
     this.#rateLimiter = new RateLimiter(100, 60);
     this.container.register("database", this.#db);

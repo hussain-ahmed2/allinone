@@ -21,5 +21,8 @@
   },
   "devDependencies": {
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^14.1.0"
   }
 }
