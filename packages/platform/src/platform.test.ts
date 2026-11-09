@@ -26,8 +26,18 @@ describe("createPlatform", () => {
     const order: string[] = [];
     const platform = createPlatform({ database: { adapter: "memory" } });
     platform
-      .extend({ name: "first", initialize: () => { order.push("first"); } })
-      .extend({ name: "second", initialize: () => { order.push("second"); } });
+      .extend({
+        name: "first",
+        initialize: () => {
+          order.push("first");
+        },
+      })
+      .extend({
+        name: "second",
+        initialize: () => {
+          order.push("second");
+        },
+      });
     await platform.initialize();
     expect(order).toEqual(["first", "second"]);
     await platform.shutdown();
@@ -36,21 +46,24 @@ describe("createPlatform", () => {
   it("rejects duplicate module names", () => {
     const platform = createPlatform({ database: { adapter: "memory" } });
     platform.extend({ name: "dup", initialize: () => undefined });
-    expect(() => platform.extend({ name: "dup", initialize: () => undefined })).toThrow(/already registered/);
+    expect(() => platform.extend({ name: "dup", initialize: () => undefined })).toThrow(
+      /already registered/,
+    );
   });
 
   it("rejects unavailable database adapters loudly", () => {
-    expect(() =>
-      createPlatform({ database: { adapter: "postgres" } }),
-    ).toThrow(/not installed/);
+    expect(() => createPlatform({ database: { adapter: "postgres" } })).toThrow(/not installed/);
   });
 
   it("enforces tenant isolation through platform services", async () => {
     const platform = createPlatform({ database: { adapter: "memory" } });
     await platform.initialize();
     const tenantId = platform.tenants.create({
-      id: "t1", name: "Acme", slug: "acme",
-      strategy: "shared-schema", domains: [],
+      id: "t1",
+      name: "Acme",
+      slug: "acme",
+      strategy: "shared-schema",
+      domains: [],
     }).id;
     await platform.database.insert("users", [{ name: "Ada" }], { tenantId });
     const rows = await platform.database.find("users", { tenantId: "t-other" });

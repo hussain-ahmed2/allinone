@@ -90,7 +90,12 @@ export interface ApiKeyRecord {
 export class ApiKeyStore {
   readonly #keys = new Map<string, ApiKeyRecord>();
 
-  create(input: { tenantId: string; name: string; scopes: readonly string[]; expiresInSeconds?: number }): {
+  create(input: {
+    tenantId: string;
+    name: string;
+    scopes: readonly string[];
+    expiresInSeconds?: number;
+  }): {
     record: ApiKeyRecord;
     secret: string;
   } {
@@ -122,7 +127,10 @@ export class ApiKeyStore {
       if (stored.length !== candidate.length) continue;
       if (!timingSafeEqual(stored, candidate)) continue;
       const hasScope = record.scopes.some(
-        (s) => s === "*" || s === requiredScope || s.endsWith(".*") && requiredScope.startsWith(s.slice(0, -1)),
+        (s) =>
+          s === "*" ||
+          s === requiredScope ||
+          (s.endsWith(".*") && requiredScope.startsWith(s.slice(0, -1))),
       );
       return hasScope ? record : null;
     }
@@ -322,13 +330,37 @@ export function createLogger(
 ) {
   return {
     info(message: string, fields: Record<string, unknown> = {}, ctx: LogContext = {}): void {
-      sink(JSON.stringify({ level: "info", message, timestamp: new Date().toISOString(), ...ctx, ...fields }));
+      sink(
+        JSON.stringify({
+          level: "info",
+          message,
+          timestamp: new Date().toISOString(),
+          ...ctx,
+          ...fields,
+        }),
+      );
     },
     warn(message: string, fields: Record<string, unknown> = {}, ctx: LogContext = {}): void {
-      sink(JSON.stringify({ level: "warn", message, timestamp: new Date().toISOString(), ...ctx, ...fields }));
+      sink(
+        JSON.stringify({
+          level: "warn",
+          message,
+          timestamp: new Date().toISOString(),
+          ...ctx,
+          ...fields,
+        }),
+      );
     },
     error(message: string, fields: Record<string, unknown> = {}, ctx: LogContext = {}): void {
-      sink(JSON.stringify({ level: "error", message, timestamp: new Date().toISOString(), ...ctx, ...fields }));
+      sink(
+        JSON.stringify({
+          level: "error",
+          message,
+          timestamp: new Date().toISOString(),
+          ...ctx,
+          ...fields,
+        }),
+      );
     },
   };
 }

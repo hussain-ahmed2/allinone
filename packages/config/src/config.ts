@@ -19,10 +19,7 @@
 
 /** Tenant isolation strategy. */
 export type TenancyStrategy =
-  | "shared-schema"
-  | "separate-schema"
-  | "database-per-tenant"
-  | "hybrid";
+  "shared-schema" | "separate-schema" | "database-per-tenant" | "hybrid";
 
 /** Authorization engine mode. */
 export type AuthzMode = "rbac" | "abac" | "rbac-abac";
@@ -31,7 +28,7 @@ export interface DatabaseConfig {
   /** Adapter key, e.g. "postgres" | "mongodb" | "redis" | "memory" | custom. */
   adapter: string;
   /** Adapter instance — typed loosely so any adapter satisfying DatabaseAdapter works. */
-   
+
   instance?: unknown;
   url?: string;
 }
@@ -39,7 +36,7 @@ export interface DatabaseConfig {
 export interface TenancyConfig {
   strategy: TenancyStrategy;
   /** Custom resolver — MUST validate membership; never trust raw client tenant IDs. */
-   
+
   resolver?: (ctx: unknown) => Promise<string | null> | string | null;
   enforceIsolation: boolean;
 }
@@ -65,13 +62,13 @@ export interface AuthorizationConfig {
   mode: AuthzMode;
   /** Must stay true — platform invariant. */
   defaultDeny: boolean;
-   
+
   customPolicies?: readonly unknown[];
 }
 
 export interface CmsConfig {
   enabled: boolean;
-   
+
   collections?: readonly unknown[];
   localization: boolean;
 }
@@ -175,9 +172,7 @@ export const platformDefaults: ResolvedPlatformConfig = {
  * Nested sections merge section-by-section so a single override
  * never replaces an entire preset.
  */
-export function resolveConfig(
-  options: PlatformOptions,
-): ResolvedPlatformConfig {
+export function resolveConfig(options: PlatformOptions): ResolvedPlatformConfig {
   const preset = options.preset ?? {};
   const merged: ResolvedPlatformConfig = {
     database: { ...platformDefaults.database, ...options.database },
@@ -227,10 +222,7 @@ export function resolveConfig(
  * `dangerouslyAllowInsecure: true` — and even then we only allow
  * weakening session cookies, never default-deny.
  */
-export function assertSecure(
-  config: ResolvedPlatformConfig,
-  allowInsecure: boolean,
-): void {
+export function assertSecure(config: ResolvedPlatformConfig, allowInsecure: boolean): void {
   if (!config.authorization.defaultDeny) {
     throw new Error(
       "[allinone] Security invariant: authorization.defaultDeny must be true. " +
@@ -252,9 +244,7 @@ export function assertSecure(
       );
     }
     if (!s.rotateRefreshTokens) {
-      throw new Error(
-        "[allinone] Security invariant: refresh token rotation must stay enabled.",
-      );
+      throw new Error("[allinone] Security invariant: refresh token rotation must stay enabled.");
     }
   }
 }

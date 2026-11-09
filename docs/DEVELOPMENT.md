@@ -9,28 +9,44 @@
 
 ```bash
 pnpm install
-pnpm build
-pnpm test
-pnpm typecheck
-pnpm lint
+pnpm checks   # build + strict typecheck + typed lint + format + tests
 ```
+
+Individual checks:
+
+```bash
+pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
+```
+
+Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
+
+- `tsconfig.base.json`: `strict`, `strictNullChecks`, `noImplicitAny`,
+  `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+  `useUnknownInCatchVariables`
+- `eslint.config.mjs`: `defineConfig` from `eslint/config` with
+  `strictTypeChecked` + `projectService` (typed rules). Docs use
+  `recommended` only; `require-await: off` (adapters satisfy async
+  interfaces with sync bodies — see inline comment).
+- Prettier: `pnpm format` / `pnpm format:check` (ignores `dist/`,
+  `node_modules/`, `pnpm-lock.yaml`).
 
 ## Workspace layout
 
-| Path | Package | Purpose |
-|------|---------|---------|
-| `packages/platform` | `allinone` | Public entry — `createPlatform()`, lifecycle, container |
-| `packages/config` | `@allinone/config` | Typed config, defaults, security invariants |
-| `packages/presets` | `@allinone/presets` | starter / saas / enterprise / cms / ecommerce |
-| `packages/database` | `@allinone/database` | Adapter contract, typed fields, memory adapter |
-| `packages/database-postgres` | `@allinone/database-postgres` | PostgreSQL adapter (pg-mem unit + live PG17 tests) |
-| `packages/tenancy` | `@allinone/tenancy` | Tenant registry, explicit context, resolvers |
-| `packages/auth` | `@allinone/auth` | Identity, sessions, RBAC/ABAC |
-| `packages/cms` | `@allinone/cms` | Collections, revisions, publishing |
-| `packages/infra` | `@allinone/infra` | Audit, API keys, webhooks, cache, subscriptions |
-| `packages/testing` | `@allinone/testing` | Shared test helpers |
-| `apps/docs` | `@allinone/docs` | Documentation site (Vite + React) |
-| `apps/example` | `@allinone/example` | Runnable example SaaS app |
+| Path                         | Package                       | Purpose                                                 |
+| ---------------------------- | ----------------------------- | ------------------------------------------------------- |
+| `packages/platform`          | `allinone`                    | Public entry — `createPlatform()`, lifecycle, container |
+| `packages/config`            | `@allinone/config`            | Typed config, defaults, security invariants             |
+| `packages/presets`           | `@allinone/presets`           | starter / saas / enterprise / cms / ecommerce           |
+| `packages/database`          | `@allinone/database`          | Adapter contract, typed fields, memory adapter          |
+| `packages/database-postgres` | `@allinone/database-postgres` | PostgreSQL adapter (pg-mem unit + live PG17 tests)      |
+| `packages/database-mongodb`  | `@allinone/database-mongodb`  | MongoDB adapter (local mongod tests)                    |
+| `packages/tenancy`           | `@allinone/tenancy`           | Tenant registry, explicit context, resolvers            |
+| `packages/auth`              | `@allinone/auth`              | Identity, sessions, RBAC/ABAC                           |
+| `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                      |
+| `packages/infra`             | `@allinone/infra`             | Audit, API keys, webhooks, cache, subscriptions         |
+| `packages/testing`           | `@allinone/testing`           | Shared test helpers                                     |
+| `apps/docs`                  | `@allinone/docs`              | Documentation site (Vite + React)                       |
+| `apps/example`               | `@allinone/example`           | Runnable example SaaS app                               |
 
 ## Conventions
 
@@ -66,8 +82,12 @@ POSTGRES_TEST_URL=postgres://postgres:testpass@localhost:5433/allinone_test \
 ```ts
 platform.extend({
   name: "my-module",
-  async initialize(platform) { /* wire services */ },
-  async shutdown() { /* release resources */ },
+  async initialize(platform) {
+    /* wire services */
+  },
+  async shutdown() {
+    /* release resources */
+  },
 });
 ```
 

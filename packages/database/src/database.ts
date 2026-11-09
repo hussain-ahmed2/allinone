@@ -8,9 +8,10 @@
  *  - All queries are parameterized by construction — no string
  *    interpolation of values into queries.
  *
- * The `memory` adapter ships in-repo (tests + examples); the PostgreSQL
- * adapter lives in `@allinone/database-postgres` (conformance + live
- * PG17 tested). Other adapters (MongoDB / MySQL / ...) ship as separate,
+ * The `memory` adapter ships in-repo (tests + examples); PostgreSQL
+ * (`@allinone/database-postgres`, live PG17 tested) and MongoDB
+ * (`@allinone/database-mongodb`, local mongod tested) ship as separate
+ * packages. Other adapters (MySQL / ...) ship as separate,
  * conformance-tested packages — do not claim support until
  * `runAdapterConformance()` passes.
  */

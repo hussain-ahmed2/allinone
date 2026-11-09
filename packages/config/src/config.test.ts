@@ -64,6 +64,8 @@ describe("assertSecure", () => {
       ...platformDefaults,
       tenancy: { ...platformDefaults.tenancy, enforceIsolation: false },
     };
-    expect(() => { assertSecure(cfg, true); }).toThrow(/enforceIsolation/);
+    expect(() => {
+      assertSecure(cfg, true);
+    }).toThrow(/enforceIsolation/);
   });
 });

@@ -5,12 +5,7 @@
  * and stored through a DatabaseAdapter — CMS stays database-agnostic.
  * Publishing statuses: draft → in-review → published → archived.
  */
-import {
-  defineCollection,
-  fields,
-  type CollectionDef,
-  type InferModel,
-} from "@allinone/database";
+import { defineCollection, fields, type CollectionDef, type InferModel } from "@allinone/database";
 
 export type ContentStatus = "draft" | "in-review" | "published" | "archived";
 

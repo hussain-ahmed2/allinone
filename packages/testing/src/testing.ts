@@ -9,16 +9,15 @@ export function testDatabase() {
 }
 
 /** Assert a promise rejects with a message matching the pattern. */
-export async function expectRejects(
-  promise: Promise<unknown>,
-  pattern: RegExp,
-): Promise<void> {
+export async function expectRejects(promise: Promise<unknown>, pattern: RegExp): Promise<void> {
   try {
     await promise;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!pattern.test(message)) {
-      throw new Error(`Expected rejection matching ${String(pattern)}, got: ${message}`);
+      throw new Error(`Expected rejection matching ${String(pattern)}, got: ${message}`, {
+        cause: error,
+      });
     }
     return;
   }

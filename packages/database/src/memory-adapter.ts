@@ -112,11 +112,7 @@ export function createMemoryAdapter(): DatabaseAdapter {
     async createTable(collection: string): Promise<void> {
       table(collection);
     },
-    async insert(
-      collection: string,
-      rows: readonly Row[],
-      ctx?: AdapterContext,
-    ): Promise<Row[]> {
+    async insert(collection: string, rows: readonly Row[], ctx?: AdapterContext): Promise<Row[]> {
       if (!connected) throw new Error("[allinone/database] Adapter not connected");
       const t = table(collection);
       const out: Row[] = rows.map((r) => {
@@ -132,11 +128,7 @@ export function createMemoryAdapter(): DatabaseAdapter {
       });
       return out;
     },
-    async find(
-      collection: string,
-      options?: QueryOptions,
-      _ctx?: AdapterContext,
-    ): Promise<Row[]> {
+    async find(collection: string, options?: QueryOptions, _ctx?: AdapterContext): Promise<Row[]> {
       if (!connected) throw new Error("[allinone/database] Adapter not connected");
       let rows = [...table(collection).values()].filter((r) => matches(r, options));
       const sort = options?.sort ?? [];
@@ -181,11 +173,7 @@ export function createMemoryAdapter(): DatabaseAdapter {
       t.set(id, updated);
       return updated;
     },
-    async remove(
-      collection: string,
-      id: string,
-      ctx?: AdapterContext,
-    ): Promise<boolean> {
+    async remove(collection: string, id: string, ctx?: AdapterContext): Promise<boolean> {
       if (!connected) throw new Error("[allinone/database] Adapter not connected");
       const t = table(collection);
       const existing = t.get(id);

@@ -142,10 +142,7 @@ export function matchesPermission(granted: string, required: string): boolean {
 }
 
 /** Resolve a role's effective permissions through inheritance. */
-export function effectivePermissions(
-  roleId: string,
-  rolesById: Map<string, Role>,
-): string[] {
+export function effectivePermissions(roleId: string, rolesById: Map<string, Role>): string[] {
   const out = new Set<string>();
   const seen = new Set<string>();
   let current: string | undefined = roleId;
@@ -169,16 +166,12 @@ export function evaluatePolicy(
 ): PolicyDecision {
   try {
     const required = `${query.resource}.${query.action}`;
-    const granted = query.actor.roles.flatMap((r) =>
-      effectivePermissions(r, rolesById),
-    );
+    const granted = query.actor.roles.flatMap((r) => effectivePermissions(r, rolesById));
     const matched = granted.find((g) => matchesPermission(g, required));
     if (matched) {
       // ABAC conditions can still deny — explicit deny always wins.
       const denied = policies.some(
-        (p) =>
-          matchesPermission(matched, p.permission) &&
-          p.condition?.(query) === false,
+        (p) => matchesPermission(matched, p.permission) && p.condition?.(query) === false,
       );
       if (denied) {
         return { allowed: false, reason: "abac-condition-denied", matchedPermission: matched };
@@ -235,11 +228,7 @@ export class AuthService {
     this.#sessionMaxAge = options.sessionMaxAgeSeconds ?? 60 * 60 * 24 * 7;
   }
 
-  async register(input: {
-    email: string;
-    password: string;
-    name: string;
-  }): Promise<User> {
+  async register(input: { email: string; password: string; name: string }): Promise<User> {
     const email = input.email.toLowerCase();
     if (this.#byEmail.has(email)) {
       throw new Error("[allinone/auth] Account already exists");

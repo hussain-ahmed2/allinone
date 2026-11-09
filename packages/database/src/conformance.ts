@@ -31,16 +31,12 @@ async function assertRejects(promise: Promise<unknown>, message: string): Promis
 }
 
 /** Basic CRUD + tenant isolation contract. */
-export async function runAdapterConformance(
-  adapter: DatabaseAdapter,
-): Promise<void> {
+export async function runAdapterConformance(adapter: DatabaseAdapter): Promise<void> {
   await adapter.connect();
   try {
     await adapter.createTable?.("conformance_items");
     // Insert + find round-trip.
-    const [inserted] = await adapter.insert("conformance_items", [
-      { name: "alpha", score: 1 },
-    ]);
+    const [inserted] = await adapter.insert("conformance_items", [{ name: "alpha", score: 1 }]);
     assert(inserted?.["id"] !== undefined, "insert must assign an id");
 
     const found = await adapter.find("conformance_items", {
@@ -76,10 +72,9 @@ export async function runAdapterConformance(
         adapter.transaction(() => Promise.resolve(undefined)),
         "transactions unsupported must reject",
       );
-      assertThrows(
-        () => { assertCapability(adapter, "transactions"); },
-        "assertCapability(transactions) must throw",
-      );
+      assertThrows(() => {
+        assertCapability(adapter, "transactions");
+      }, "assertCapability(transactions) must throw");
     }
   } finally {
     await adapter.disconnect();

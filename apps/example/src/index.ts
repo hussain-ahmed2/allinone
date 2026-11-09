@@ -69,7 +69,9 @@ async function main(): Promise<void> {
   });
   const auditValid = platform.audit.verifyChain();
   const auditCount = platform.audit.listForTenant(tenant.id).length;
-  console.log(`[example] audit chain valid: ${String(auditValid)}, events for tenant: ${String(auditCount)}`);
+  console.log(
+    `[example] audit chain valid: ${String(auditValid)}, events for tenant: ${String(auditCount)}`,
+  );
 
   // 5 — API key with scoped permissions.
   const { record, secret } = platform.apiKeys.create({
@@ -78,13 +80,17 @@ async function main(): Promise<void> {
     scopes: ["posts.read"],
   });
   const verified = platform.apiKeys.verify(secret, "posts.read");
-  console.log(`[example] API key ${record.id} verifies for posts.read: ${String(verified !== null)}`);
+  console.log(
+    `[example] API key ${record.id} verifies for posts.read: ${String(verified !== null)}`,
+  );
 
   // 6 — Database round-trip with tenant isolation.
   await platform.database.insert("users", [{ name: "Ada" }], { tenantId: tenant.id });
   const own = await platform.database.find("users", { tenantId: tenant.id });
   const other = await platform.database.find("users", { tenantId: "tenant_other" });
-  console.log(`[example] tenant isolation: own=${String(own.length)} other=${String(other.length)}`);
+  console.log(
+    `[example] tenant isolation: own=${String(own.length)} other=${String(other.length)}`,
+  );
 
   await platform.shutdown();
   console.log("[example] shutdown complete");

@@ -14,15 +14,8 @@
  * await platform.initialize();
  * ```
  */
-import {
-  resolveConfig,
-  type PlatformOptions,
-  type ResolvedPlatformConfig,
-} from "@allinone/config";
-import {
-  createMemoryAdapter,
-  type DatabaseAdapter,
-} from "@allinone/database";
+import { resolveConfig, type PlatformOptions, type ResolvedPlatformConfig } from "@allinone/config";
+import { createMemoryAdapter, type DatabaseAdapter } from "@allinone/database";
 import { TenantContext, TenantRegistry } from "@allinone/tenancy";
 import { AuthService } from "@allinone/auth";
 import { CmsStore } from "@allinone/cms";
@@ -38,10 +31,7 @@ import {
  * works for the documented API without extra installs. */
 export { fields } from "@allinone/database";
 export { presets } from "@allinone/presets";
-export type {
-  DatabaseAdapter,
-  DatabaseCapabilities,
-} from "@allinone/database";
+export type { DatabaseAdapter, DatabaseCapabilities } from "@allinone/database";
 
 /** Framework-agnostic request context — your framework maps HTTP → this. */
 export interface RequestContext {
@@ -150,7 +140,7 @@ export class Platform {
 
   #resolveAdapter(options: PlatformOptions): DatabaseAdapter {
     const instance = options.database.instance as DatabaseAdapter | undefined;
-    if (instance && typeof (instance).find === "function") {
+    if (instance && typeof instance.find === "function") {
       return instance;
     }
     if (options.database.adapter !== "memory") {

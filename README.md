@@ -27,18 +27,19 @@ await platform.shutdown();
 
 ## Packages
 
-| Package | Purpose |
-|---------|---------|
+| Package                          | Purpose                                                               |
+| -------------------------------- | --------------------------------------------------------------------- |
 | `allinone` (`packages/platform`) | Public entry: `createPlatform()`, lifecycle, DI container, extensions |
-| `@allinone/config` | Strongly-typed config + security invariants |
-| `@allinone/presets` | starter / saas / enterprise / cms / ecommerce presets |
-| `@allinone/database` | Database-agnostic adapter contract, typed fields, conformance suite |
-| `@allinone/database-postgres` | PostgreSQL adapter — transactions, migrations, RLS, soft deletes |
-| `@allinone/tenancy` | Multi-tenancy: registry, explicit context, safe resolvers |
-| `@allinone/auth` | Identity, sessions, RBAC + ABAC (default-deny) |
-| `@allinone/cms` | Headless CMS: collections, revisions, publishing |
-| `@allinone/infra` | Audit, API keys, webhooks, cache, subscriptions, rate limiting |
-| `@allinone/testing` | Shared test helpers |
+| `@allinone/config`               | Strongly-typed config + security invariants                           |
+| `@allinone/presets`              | starter / saas / enterprise / cms / ecommerce presets                 |
+| `@allinone/database`             | Database-agnostic adapter contract, typed fields, conformance suite   |
+| `@allinone/database-postgres`    | PostgreSQL adapter — transactions, migrations, RLS, soft deletes      |
+| `@allinone/database-mongodb`     | MongoDB adapter — document-native, NoSQL-injection-safe               |
+| `@allinone/tenancy`              | Multi-tenancy: registry, explicit context, safe resolvers             |
+| `@allinone/auth`                 | Identity, sessions, RBAC + ABAC (default-deny)                        |
+| `@allinone/cms`                  | Headless CMS: collections, revisions, publishing                      |
+| `@allinone/infra`                | Audit, API keys, webhooks, cache, subscriptions, rate limiting        |
+| `@allinone/testing`              | Shared test helpers                                                   |
 
 ## Highlights
 
@@ -72,9 +73,10 @@ pnpm example      # runnable example app
 
 Phase 0–6 milestones are implemented with tests. The PostgreSQL adapter
 (`@allinone/database-postgres`) is conformance-tested (pg-mem unit +
-live Postgres 17 integration). MongoDB adapters, SSO/TOTP MFA, and
-deployment examples are the next milestones — see the architecture
-roadmap. No payment provider is hard-coupled; billing is adapter-based.
+live Postgres 17 integration), as is the MongoDB adapter
+(`@allinone/database-mongodb`, local mongod). SSO/TOTP MFA and deployment
+examples are the next milestones — see the architecture roadmap. No
+payment provider is hard-coupled; billing is adapter-based.
 
 Run live tests against Docker Postgres:
 

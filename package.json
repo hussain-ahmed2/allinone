@@ -17,16 +17,19 @@
     "typecheck": "pnpm -r --workspace-concurrency=1 typecheck",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "checks": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "docs:dev": "pnpm --filter @allinone/docs dev",
     "docs:build": "pnpm --filter @allinone/docs build",
     "example": "pnpm --filter @allinone/example start"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.10.0",
-    "eslint": "^9.18.0",
+    "eslint": "^10.14.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.0.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^3.0.0"
   }
 }

@@ -30,29 +30,30 @@ assumed framework API.
 
 ## Roadmap (milestones)
 
-| Milestone | Scope | Status |
-|-----------|-------|--------|
-| Phase 0 | Audit + ADR + roadmap | ✅ done (this doc) |
-| Phase 1 | Core, config, presets, lifecycle, plugins | ✅ done |
-| Phase 2 | Database abstraction + memory adapter + conformance | ✅ done (memory); Postgres done, Mongo next |
-| Phase 3 | Identity + RBAC/ABAC + audit | ✅ done (in-memory); DB persistence next |
-| Phase 4 | Multi-tenancy (registry, context, isolation) | ✅ done (shared-schema); separate-schema/DB-per-tenant next |
-| Phase 5 | CMS + revisions | ✅ done (core store) |
-| Phase 6 | Infra (cache/api-keys/webhooks/subs/rate-limit/health) | ✅ done |
-| Phase 7a | PostgreSQL adapter (conformance + live PG17) | ✅ done |
-| Phase 7b+ | Mongo adapter, SSO/MFA TOTP, deployment examples | ⬜ next |
+| Milestone | Scope                                                  | Status                                                      |
+| --------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| Phase 0   | Audit + ADR + roadmap                                  | ✅ done (this doc)                                          |
+| Phase 1   | Core, config, presets, lifecycle, plugins              | ✅ done                                                     |
+| Phase 2   | Database abstraction + memory adapter + conformance    | ✅ done (memory, Postgres, Mongo)                           |
+| Phase 3   | Identity + RBAC/ABAC + audit                           | ✅ done (in-memory); DB persistence next                    |
+| Phase 4   | Multi-tenancy (registry, context, isolation)           | ✅ done (shared-schema); separate-schema/DB-per-tenant next |
+| Phase 5   | CMS + revisions                                        | ✅ done (core store)                                        |
+| Phase 6   | Infra (cache/api-keys/webhooks/subs/rate-limit/health) | ✅ done                                                     |
+| Phase 7a  | PostgreSQL adapter (conformance + live PG17)           | ✅ done                                                     |
+| Phase 7b  | MongoDB adapter (conformance + local mongod)           | ✅ done                                                     |
+| Phase 7c+ | SSO/MFA TOTP, deployment examples                      | ⬜ next                                                     |
 
 ## Threat model (summary)
 
-| Threat | Mitigation |
-|--------|-----------|
-| Client-supplied tenant ID forgery | `createHeaderResolver()` validates membership; never trust raw IDs |
-| Cross-tenant data leak | Query-time tenant filter + TS-typed tenant context + cache namespacing |
-| Token theft/reuse | SHA-256 hashed refresh tokens, rotation, reuse → family revocation |
-| Account enumeration | Generic "Invalid credentials" + lockout backoff |
-| Authz bypass via UI | Server-side `evaluatePolicy()` is the only boundary; default-deny |
-| Unsupported DB capability silently faked | `UnsupportedCapabilityError` — fail loud, never simulate |
-| Audit tampering | Append-only + SHA-256 hash chain (`AuditLog.verifyChain()`) |
+| Threat                                   | Mitigation                                                             |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| Client-supplied tenant ID forgery        | `createHeaderResolver()` validates membership; never trust raw IDs     |
+| Cross-tenant data leak                   | Query-time tenant filter + TS-typed tenant context + cache namespacing |
+| Token theft/reuse                        | SHA-256 hashed refresh tokens, rotation, reuse → family revocation     |
+| Account enumeration                      | Generic "Invalid credentials" + lockout backoff                        |
+| Authz bypass via UI                      | Server-side `evaluatePolicy()` is the only boundary; default-deny      |
+| Unsupported DB capability silently faked | `UnsupportedCapabilityError` — fail loud, never simulate               |
+| Audit tampering                          | Append-only + SHA-256 hash chain (`AuditLog.verifyChain()`)            |
 
 ## Open questions for framework owners
 

@@ -56,7 +56,12 @@ full-text search, and RLS — always pass values via `params`, never interpolate
 
 ```ts
 await db.migrate([
-  { id: "001_init", async up(tx) { await tx.createTable("users"); } },
+  {
+    id: "001_init",
+    async up(tx) {
+      await tx.createTable("users");
+    },
+  },
 ]);
 ```
 

@@ -1,14 +1,29 @@
-// ESLint flat config — strict, no-unsafe-any, no non-null assertion in prod code.
-
+// @ts-check
+/**
+ * ESLint flat config (ESLint 10 + typescript-eslint v8).
+ *
+ * Uses ESLint's built-in `defineConfig` helper (`eslint/config`) —
+ * the stable, non-deprecated replacement for `tseslint.config()`.
+ *
+ * Typed linting: `strictTypeChecked` + `projectService` so type-aware
+ * rules run with full program information across the monorepo.
+ * @see https://typescript-eslint.io/getting-started/typed-linting/
+ */
+import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+export default defineConfig([
   {
     ignores: ["**/dist/**", "**/node_modules/**", "apps/docs/dist/**"],
   },
   {
     files: ["packages/*/src/**/*.ts", "apps/example/src/**/*.ts"],
-    extends: [tseslint.configs.strictTypeChecked, tseslint.configs.stylistic],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.strictTypeChecked,
+      tseslint.configs.stylistic,
+    ],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -25,6 +40,8 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      // Adapters intentionally satisfy async interfaces with sync bodies
+      // (memory adapter, cache, hasher stubs). The rule adds noise here.
       "@typescript-eslint/require-await": "off",
     },
   },
@@ -42,9 +59,9 @@ export default tseslint.config(
   },
   {
     files: ["apps/docs/src/**/*"],
-    extends: [tseslint.configs.recommended],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
-);
+]);

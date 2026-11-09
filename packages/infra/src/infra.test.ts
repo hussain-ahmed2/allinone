@@ -13,8 +13,24 @@ import {
 describe("AuditLog", () => {
   it("is append-only and tamper-evident", () => {
     const log = new AuditLog();
-    log.append({ actorId: "u1", tenantId: "t1", action: "login", resource: "session", outcome: "success", correlationId: "c1", metadata: {} });
-    log.append({ actorId: "u1", tenantId: "t1", action: "read", resource: "users", outcome: "success", correlationId: "c2", metadata: {} });
+    log.append({
+      actorId: "u1",
+      tenantId: "t1",
+      action: "login",
+      resource: "session",
+      outcome: "success",
+      correlationId: "c1",
+      metadata: {},
+    });
+    log.append({
+      actorId: "u1",
+      tenantId: "t1",
+      action: "read",
+      resource: "users",
+      outcome: "success",
+      correlationId: "c2",
+      metadata: {},
+    });
     expect(log.listForTenant("t1")).toHaveLength(2);
     expect(log.listForTenant("t2")).toHaveLength(0);
     expect(log.verifyChain()).toBe(true);

@@ -32,9 +32,7 @@ export interface TenantResolverContext {
   userId?: string;
 }
 
-export type TenantResolver = (
-  ctx: TenantResolverContext,
-) => Promise<string | null> | string | null;
+export type TenantResolver = (ctx: TenantResolverContext) => Promise<string | null> | string | null;
 
 /**
  * Explicit, async-safe tenant context.
@@ -71,10 +69,12 @@ export class TenantContext {
 export class TenantRegistry {
   readonly #tenants = new Map<string, Tenant>();
 
-  create(input: Omit<Tenant, "status" | "metadata"> & {
-    status?: Tenant["status"];
-    metadata?: Record<string, unknown>;
-  }): Tenant {
+  create(
+    input: Omit<Tenant, "status" | "metadata"> & {
+      status?: Tenant["status"];
+      metadata?: Record<string, unknown>;
+    },
+  ): Tenant {
     const tenant: Tenant = {
       ...input,
       status: input.status ?? "active",

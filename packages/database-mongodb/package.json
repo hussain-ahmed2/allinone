@@ -1,0 +1,31 @@
+{
+  "name": "@allinone/database-mongodb",
+  "version": "0.1.0",
+  "description": "MongoDB adapter for @allinone/database — document-native, tenant-scoped, NoSQL-injection-safe",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allinone/database": "workspace:*",
+    "mongodb": "^6.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

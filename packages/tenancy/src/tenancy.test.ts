@@ -24,14 +24,26 @@ describe("TenantContext", () => {
 describe("TenantRegistry + safe header resolver", () => {
   it("rejects header tenant ids without membership", async () => {
     const registry = new TenantRegistry();
-    registry.create({ id: "t1", name: "Acme", slug: "acme", strategy: "shared-schema", domains: [] });
+    registry.create({
+      id: "t1",
+      name: "Acme",
+      slug: "acme",
+      strategy: "shared-schema",
+      domains: [],
+    });
     const resolve = createHeaderResolver(registry, () => false);
     await expect(resolve({ headerTenantId: "t1", userId: "u1" })).resolves.toBeNull();
   });
 
   it("accepts header tenant ids with validated membership", async () => {
     const registry = new TenantRegistry();
-    registry.create({ id: "t1", name: "Acme", slug: "acme", strategy: "shared-schema", domains: [] });
+    registry.create({
+      id: "t1",
+      name: "Acme",
+      slug: "acme",
+      strategy: "shared-schema",
+      domains: [],
+    });
     const resolve = createHeaderResolver(registry, () => true);
     await expect(resolve({ headerTenantId: "t1", userId: "u1" })).resolves.toBe("t1");
   });

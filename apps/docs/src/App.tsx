@@ -52,6 +52,12 @@ const MODULES = [
     tag: "PG17 verified",
   },
   {
+    name: "MongoDB",
+    pkg: "@allinone/database-mongodb",
+    desc: "MongoDB adapter — document-native, NoSQL-injection-safe.",
+    tag: "transactions honestly false",
+  },
+  {
     name: "Tenancy",
     pkg: "@allinone/tenancy",
     desc: "Tenant registry, explicit async-safe context, membership-validated resolvers.",
@@ -92,7 +98,7 @@ const ROADMAP = [
     status: "done",
   },
   { phase: "7a", title: "Postgres adapter (conformance + live PG17)", status: "done" },
-  { phase: "7b", title: "MongoDB adapter", status: "next" },
+  { phase: "7b", title: "MongoDB adapter (conformance + local mongod)", status: "done" },
   { phase: "7c", title: "SSO / OIDC, TOTP MFA, passkeys, recovery codes", status: "next" },
   { phase: "7d", title: "Separate-schema + database-per-tenant strategies", status: "next" },
   { phase: "7e", title: "Deployment examples, load + security benchmarking", status: "next" },
