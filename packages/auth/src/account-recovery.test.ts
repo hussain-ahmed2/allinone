@@ -31,7 +31,7 @@ describe("password reset", () => {
       password: "correct horse battery",
       name: "Re",
     });
-    const { session, refreshToken } = await auth.login({
+    const { refreshToken } = await auth.login({
       email: "reset@example.com",
       password: "correct horse battery",
       tenantId: "t1",
