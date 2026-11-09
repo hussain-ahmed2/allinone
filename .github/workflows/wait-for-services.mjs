@@ -26,9 +26,10 @@ async function wait(port, label) {
   }
 }
 
+// Mongo is awaited via mongosh ping in the CI step (see ci.yml); TCP-only
+// ports keep this waiter dependency-free and fast.
 await Promise.all([
   wait(5433, "postgres"),
-  wait(27017, "mongo"),
   wait(3307, "mysql"),
   wait(6380, "redis"),
 ]);

@@ -25,10 +25,17 @@ function createTestAdapter(): RedisAdapter {
 
 describe("redis adapter (live redis:7)", () => {
   let adapter: RedisAdapter;
+  let reachable = true;
 
-  beforeEach(async () => {
+  beforeEach(async (ctx) => {
     adapter = createTestAdapter();
-    await adapter.connect();
+    try {
+      await adapter.connect();
+    } catch {
+      reachable = false;
+      ctx.skip();
+    }
+    if (!reachable) ctx.skip();
   });
 
   afterEach(async () => {

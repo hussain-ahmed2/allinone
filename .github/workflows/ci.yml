@@ -32,14 +32,23 @@ jobs:
           # pnpm 11 needs Node >= 22.13 (uses node:sqlite); use 24 LTS.
           node-version: 24
           cache: pnpm
-      - name: Start datastores
+      - name: Start datastores (docker)
         run: |
           docker run -d --name pg -e POSTGRES_PASSWORD=testpass -e POSTGRES_DB=allinone_test -p 5433:5432 --rm postgres:17
-          docker run -d --name mongod -p 27017:27017 --rm mongo:8
+          docker run -d --name mongod -e MONGO_INITDB_DATABASE=allinone_test -p 27017:27017 --rm mongo:7
           docker run -d --name mysql -e MARIADB_ROOT_PASSWORD=testpass -e MARIADB_DATABASE=allinone_test -e MARIADB_USER=test -e MARIADB_PASSWORD=testpass -p 3307:3306 --rm mariadb:11
           docker run -d --name redis -p 6380:6379 --rm redis:7
-      - name: Wait for services
+      - name: Wait for Postgres / MySQL / Redis
         run: node .github/workflows/wait-for-services.mjs
+      - name: Wait for MongoDB
+        run: |
+          ok=0
+          for i in $(seq 1 60); do
+            if docker exec mongod mongosh --quiet --eval "db.adminCommand({ping:1})" >/dev/null 2>&1; then ok=1; break; fi
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then echo "mongo never became ready"; docker logs mongod | tail -30; exit 1; fi
+          echo "mongo ready"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Checks (build + typecheck + lint + format + tests)
