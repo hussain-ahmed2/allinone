@@ -49,10 +49,23 @@ export interface SessionConfig {
   rotateRefreshTokens: boolean;
 }
 
+/** OAuth 2.0 / OIDC provider (SSO). Secrets should come from env. */
+export interface OAuthProviderConfig {
+  /** Stable local id, e.g. "google" | "okta" | "keycloak". */
+  id: string;
+  issuer: string;
+  clientId: string;
+  clientSecret?: string;
+  redirectUri: string;
+  scopes?: readonly string[];
+}
+
 export interface AuthConfig {
   enabled: boolean;
   mfa: boolean;
   passwordless: boolean;
+  /** SSO / OIDC providers (e.g. Google, Okta, Keycloak). */
+  providers: readonly OAuthProviderConfig[];
   session: SessionConfig;
   maxLoginAttempts: number;
   lockoutSeconds: number;
@@ -135,6 +148,7 @@ export const platformDefaults: ResolvedPlatformConfig = {
     enabled: true,
     mfa: false,
     passwordless: false,
+    providers: [],
     session: {
       secure: true,
       httpOnly: true,

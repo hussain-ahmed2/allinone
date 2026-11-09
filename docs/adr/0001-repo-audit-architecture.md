@@ -41,7 +41,8 @@ assumed framework API.
 | Phase 6   | Infra (cache/api-keys/webhooks/subs/rate-limit/health) | ✅ done                                                     |
 | Phase 7a  | PostgreSQL adapter (conformance + live PG17)           | ✅ done                                                     |
 | Phase 7b  | MongoDB adapter (conformance + local mongod)           | ✅ done                                                     |
-| Phase 7c+ | SSO/MFA TOTP, deployment examples                      | ⬜ next                                                     |
+| Phase 7c  | SSO/OIDC + TOTP MFA + recovery codes                   | ✅ done                                                     |
+| Phase 7d+ | Separate-schema tenancy, deployment examples           | ⬜ next                                                     |
 
 ## Threat model (summary)
 

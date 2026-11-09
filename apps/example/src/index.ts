@@ -2,12 +2,13 @@
  * @allinone/example — runnable example SaaS flow.
  *
  * Demonstrates: org registration → tenant creation → invitation intent →
- * user registration → login (tenant-scoped) → CMS publish → audit trail →
- * API key issuance + scoped verification → graceful shutdown.
+ * user registration → login (tenant-scoped) → TOTP MFA → CMS publish →
+ * audit trail → API key issuance + scoped verification → graceful shutdown.
  *
  * Run: `pnpm example` (uses the in-memory adapter — no external services).
  */
 import { createPlatform, presets } from "allinone";
+import { base32Decode, totpCode } from "@allinone/auth";
 
 async function main(): Promise<void> {
   const platform = createPlatform({
@@ -45,6 +46,20 @@ async function main(): Promise<void> {
 
   await platform.auth.rotateRefresh(refreshToken);
   console.log("[example] refresh token rotated");
+
+  // 2b — TOTP MFA: enroll, confirm, and check replay protection.
+  const enrollment = platform.auth.startTotpEnrollment(session.userId, {
+    issuer: "allinone-example",
+  });
+  console.log(`[example] TOTP enrollment started (otpauth URI ready for QR)`);
+  const totpSecret = base32Decode(enrollment.secret);
+  const confirmed = platform.auth.confirmTotpEnrollment(session.userId, totpCode(totpSecret));
+  console.log(
+    `[example] MFA enabled (recovery codes issued: ${String(confirmed.recoveryCodes.length)})`,
+  );
+  console.log(
+    `[example] replay rejected: ${String(!platform.auth.verifyTotp(session.userId, totpCode(totpSecret)))}`,
+  );
 
   // 3 — CMS: draft → review → publish.
   const entry = platform.cms.create({

@@ -11,6 +11,15 @@
  *    never an authorization boundary.
  */
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import {
+  consumeRecoveryCode,
+  generateRecoveryCodes,
+  generateTotpSecret,
+  totpUri,
+  TotpVerifier,
+  type RecoveryCodeSet,
+} from "./totp.js";
+import type { OidcUser } from "./oidc.js";
 
 /* ------------------------------------------------------------------ */
 /* Identity entities                                                    */
@@ -220,6 +229,14 @@ export class AuthService {
   readonly #refreshHashes = new Map<string, string>(); // sessionId -> sha256(refreshToken)
   readonly #failures = new Map<string, { count: number; lockedUntil: number }>();
   readonly #usedRefresh = new Set<string>(); // rotated-away hashes — reuse = compromise
+  readonly #totpVerifier = new TotpVerifier();
+  readonly #pendingTotp = new Map<string, Buffer>(); // userId -> unconfirmed secret
+  readonly #mfa = new Map<
+    string,
+    { secret: Buffer; enabled: boolean; recoveryHashes: Set<string> }
+  >();
+  // "providerId:sub" -> userId (external identity links)
+  readonly #externalIdentities = new Map<string, string>();
 
   constructor(options: AuthOptions = {}) {
     this.#hasher = options.hasher ?? scryptHasher();
@@ -327,5 +344,125 @@ export class AuthService {
     const session = this.#sessions.get(sessionId);
     if (session) session.revoked = true;
     this.#refreshHashes.delete(sessionId);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* TOTP MFA                                                           */
+  /* ---------------------------------------------------------------- */
+
+  getUser(userId: string): User | null {
+    return this.#users.get(userId) ?? null;
+  }
+
+  isMfaEnabled(userId: string): boolean {
+    return this.#mfa.get(userId)?.enabled ?? false;
+  }
+
+  /**
+   * Begin Totp enrollment — returns the secret + `otpauth://` URI.
+   * Nothing is enabled until `confirmTotpEnrollment` succeeds.
+   */
+  startTotpEnrollment(
+    userId: string,
+    input: { issuer: string },
+  ): { secret: string; otpauthUri: string } {
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    const { secret, base32 } = generateTotpSecret();
+    this.#pendingTotp.set(userId, secret);
+    return {
+      secret: base32,
+      otpauthUri: totpUri({
+        secret: base32,
+        account: user.email,
+        issuer: input.issuer,
+      }),
+    };
+  }
+
+  /**
+   * Confirm enrollment with a current code. Enables MFA and returns
+   * plaintext recovery codes (show once, then discard).
+   */
+  confirmTotpEnrollment(userId: string, code: string): { recoveryCodes: string[] } {
+    const pending = this.#pendingTotp.get(userId);
+    if (!pending) throw new Error("[allinone/auth] No pending enrollment");
+    if (!this.#totpVerifier.verify(userId, pending, code)) {
+      throw new Error("[allinone/auth] Invalid enrollment code");
+    }
+    this.#pendingTotp.delete(userId);
+    const recovery: RecoveryCodeSet = generateRecoveryCodes(8);
+    this.#mfa.set(userId, {
+      secret: pending,
+      enabled: true,
+      recoveryHashes: new Set(recovery.hashes),
+    });
+    return { recoveryCodes: recovery.codes };
+  }
+
+  /** Verify a Totp code (replay-protected). Returns true on success. */
+  verifyTotp(userId: string, code: string): boolean {
+    const entry = this.#mfa.get(userId);
+    if (!entry?.enabled) return false;
+    return this.#totpVerifier.verify(userId, entry.secret, code);
+  }
+
+  /** Disable MFA — requires a currently-valid Totp code. */
+  disableTotp(userId: string, code: string): void {
+    const entry = this.#mfa.get(userId);
+    if (!entry?.enabled) throw new Error("[allinone/auth] MFA not enabled");
+    if (!this.#totpVerifier.verify(userId, entry.secret, code)) {
+      throw new Error("[allinone/auth] Invalid code");
+    }
+    this.#mfa.delete(userId);
+  }
+
+  /** Use a single-use recovery code. Returns true on success. */
+  useRecoveryCode(userId: string, code: string): boolean {
+    const entry = this.#mfa.get(userId);
+    if (!entry?.enabled) return false;
+    return consumeRecoveryCode(entry.recoveryHashes, code).consumed;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* External identities (SSO / OIDC)                                 */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Link an OIDC identity to a local account, creating the account on
+   * first sign-in when the provider supplies a verified email.
+   */
+  async linkExternalIdentity(
+    providerId: string,
+    oidc: OidcUser,
+  ): Promise<{ user: User; created: boolean }> {
+    const key = `${providerId}:${oidc.sub}`;
+    const existingId = this.#externalIdentities.get(key);
+    if (existingId) {
+      const user = this.#users.get(existingId);
+      if (!user) throw new Error("[allinone/auth] Linked account missing");
+      return { user, created: false };
+    }
+    const email = oidc.email?.toLowerCase();
+    const linkedUser = email ? this.#byEmail.get(email) : undefined;
+    if (linkedUser) {
+      this.#externalIdentities.set(key, linkedUser.id);
+      return { user: linkedUser, created: false };
+    }
+    if (!email || oidc.emailVerified !== true) {
+      throw new Error("[allinone/auth] Cannot link external identity without a verified email");
+    }
+    const user: User = {
+      id: `usr_${generateToken(12).replace(/[^a-zA-Z0-9]/g, "")}`,
+      email,
+      name: oidc.name ?? email,
+      emailVerified: true,
+      suspended: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.#users.set(user.id, user);
+    this.#byEmail.set(email, user);
+    this.#externalIdentities.set(key, user.id);
+    return { user, created: true };
   }
 }

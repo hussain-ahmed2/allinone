@@ -54,6 +54,9 @@ importers:
 
   apps/example:
     dependencies:
+      '@allinone/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       allinone:
         specifier: workspace:*
         version: link:../../packages/platform
