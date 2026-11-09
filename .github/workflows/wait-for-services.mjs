@@ -1,7 +1,7 @@
 import { createConnection } from "node:net";
 
 async function wait(port, label) {
-  const deadline = Date.now() + 90_000;
+  const deadline = Date.now() + 120_000;
   for (;;) {
     try {
       await new Promise((resolve, reject) => {

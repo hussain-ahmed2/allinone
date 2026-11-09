@@ -13,32 +13,7 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: allinone_test
-        ports:
-          - 5433:5432
-      mongo:
-        image: mongo:8
-        ports:
-          - 27017:27017
-      mysql:
-        image: mariadb:11
-        env:
-          MARIADB_ROOT_PASSWORD: testpass
-          MARIADB_DATABASE: allinone_test
-          MARIADB_USER: test
-          MARIADB_PASSWORD: testpass
-        ports:
-          - 3307:3306
-      redis:
-        image: redis:7
-        ports:
-          - 6380:6379
+    timeout-minutes: 25
     env:
       POSTGRES_TEST_URL: postgres://postgres:testpass@localhost:5433/allinone_test
       MONGO_TEST_URL: mongodb://127.0.0.1:27017
@@ -57,9 +32,25 @@ jobs:
           # pnpm 11 needs Node >= 22.13 (uses node:sqlite); use 24 LTS.
           node-version: 24
           cache: pnpm
+      - name: Start datastores
+        run: |
+          docker run -d --name pg -e POSTGRES_PASSWORD=testpass -e POSTGRES_DB=allinone_test -p 5433:5432 --rm postgres:17
+          docker run -d --name mongod -p 27017:27017 --rm mongo:8
+          docker run -d --name mysql -e MARIADB_ROOT_PASSWORD=testpass -e MARIADB_DATABASE=allinone_test -e MARIADB_USER=test -e MARIADB_PASSWORD=testpass -p 3307:3306 --rm mariadb:11
+          docker run -d --name redis -p 6380:6379 --rm redis:7
       - name: Wait for services
         run: node .github/workflows/wait-for-services.mjs
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Checks (build + typecheck + lint + format + tests)
         run: pnpm checks
+      - name: Dump datastore logs on failure
+        if: failure()
+        run: |
+          for c in pg mongod mysql redis; do
+            echo "===== $c ====="
+            docker logs --tail 40 "$c" || true
+          done
+      - name: Clean up datastores
+        if: always()
+        run: docker rm -f pg mongod mysql redis || true
