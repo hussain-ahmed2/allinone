@@ -188,7 +188,7 @@ describe("mysql adapter (live MariaDB)", () => {
     if (!db) return;
     const table = t("migrated");
     const migration = {
-      id: `m001_${RUN}`,
+      id: `m001_${table}`,
       async up(tx: MysqlAdapter): Promise<void> {
         await tx.createTable(table);
       },
