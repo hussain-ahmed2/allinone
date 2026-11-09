@@ -234,6 +234,8 @@ export class AuthService {
   readonly #usedRefresh = new Set<string>(); // rotated-away hashes — reuse = compromise
   readonly #totpVerifier = new TotpVerifier();
   readonly #passkeys: PasskeyService;
+  readonly #verification = new Map<string, { userId: string; expiresAt: string }>();
+  readonly #passwordResets = new Map<string, { userId: string; expiresAt: string }>();
   readonly #pendingTotp = new Map<string, Buffer>(); // userId -> unconfirmed secret
   readonly #mfa = new Map<
     string,
@@ -349,6 +351,112 @@ export class AuthService {
     const session = this.#sessions.get(sessionId);
     if (session) session.revoked = true;
     this.#refreshHashes.delete(sessionId);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Email verification + password recovery                             */
+  /* ---------------------------------------------------------------- */
+
+  /** Issue a single-use email-verification token (hash-stored, 24h). */
+  requestEmailVerification(userId: string): { token: string; expiresAt: string } {
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    const token = generateToken(32);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    this.#verification.set(hashToken(token), { userId, expiresAt });
+    return { token, expiresAt };
+  }
+
+  /** Consume a verification token — marks the email verified (single-use). */
+  async verifyEmail(token: string): Promise<User> {
+    const key = hashToken(token);
+    const entry = this.#verification.get(key);
+    if (!entry) throw new Error("[allinone/auth] Invalid verification token");
+    this.#verification.delete(key); // single-use
+    if (Date.now() > new Date(entry.expiresAt).getTime()) {
+      throw new Error("[allinone/auth] Verification token expired");
+    }
+    const user = this.#users.get(entry.userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    user.emailVerified = true;
+    return user;
+  }
+
+  /**
+   * Issue a single-use password-reset token (hash-stored, 1h).
+   * Returns null for unknown emails — the HTTP layer MUST respond
+   * identically either way (no account enumeration).
+   */
+  requestPasswordReset(email: string): { token: string; expiresAt: string } | null {
+    const user = this.#byEmail.get(email.toLowerCase());
+    if (!user || user.suspended) return null;
+    // One active reset token per user: invalidate predecessors.
+    for (const [key, entry] of this.#passwordResets) {
+      if (entry.userId === user.id) this.#passwordResets.delete(key);
+    }
+    const token = generateToken(32);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    this.#passwordResets.set(hashToken(token), { userId: user.id, expiresAt });
+    return { token, expiresAt };
+  }
+
+  /** Consume a reset token: rotate password, revoke all sessions. */
+  async consumePasswordReset(token: string, newPassword: string): Promise<User> {
+    if (newPassword.length < 12) {
+      throw new Error("[allinone/auth] Password must be at least 12 characters");
+    }
+    const key = hashToken(token);
+    const entry = this.#passwordResets.get(key);
+    if (!entry) throw new Error("[allinone/auth] Invalid reset token");
+    this.#passwordResets.delete(key); // single-use
+    if (Date.now() > new Date(entry.expiresAt).getTime()) {
+      throw new Error("[allinone/auth] Reset token expired");
+    }
+    const user = this.#users.get(entry.userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    user.passwordHash = await this.#hasher.hash(newPassword);
+    this.#revokeAllSessions(user.id);
+    return user;
+  }
+
+  /** Authenticated password change (verifies current first). */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    if (newPassword.length < 12) {
+      throw new Error("[allinone/auth] Password must be at least 12 characters");
+    }
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    const ok =
+      user.passwordHash !== undefined &&
+      (await this.#hasher.verify(currentPassword, user.passwordHash));
+    if (!ok) throw new Error("[allinone/auth] Invalid credentials");
+    user.passwordHash = await this.#hasher.hash(newPassword);
+    this.#revokeAllSessions(user.id);
+  }
+
+  /** Suspend/unsuspend an account (fail-closed at login). */
+  setSuspended(userId: string, suspended: boolean): void {
+    const user = this.#users.get(userId);
+    if (!user) throw new Error("[allinone/auth] User not found");
+    user.suspended = suspended;
+    if (suspended) this.#revokeAllSessions(userId);
+  }
+
+  /** Revoke every session of a user (logout-all devices). */
+  #revokeAllSessions(userId: string): void {
+    for (const session of this.#sessions.values()) {
+      if (session.userId === userId) session.revoked = true;
+    }
+    for (const sessionId of this.#refreshHashes.keys()) {
+      const session = this.#sessions.get(sessionId);
+      if (session?.userId === userId) {
+        this.#refreshHashes.delete(sessionId);
+      }
+    }
   }
 
   /* ---------------------------------------------------------------- */

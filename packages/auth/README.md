@@ -59,6 +59,28 @@ increase (cloned authenticators are rejected); a credential belongs to
 exactly one user. Verification delegates to `@simplewebauthn/server` —
 never custom crypto.
 
+## Email verification + password recovery
+
+Tokens are hashed at rest, single-use, and time-boxed (verification 24h,
+reset 1h). The framework emails the token (see `@allinone/infra` mailer);
+these APIs stay server-side.
+
+```ts
+// Verification: issue → email the link → consume.
+const { token } = auth.requestEmailVerification(userId);
+await auth.verifyEmail(token);
+
+// Recovery: unknown emails return null — your HTTP layer must answer
+// generically (no enumeration).
+const issued = auth.requestPasswordReset(email);
+if (issued) await mailer.send({ to: email, ... });
+// On click (rotates password + revokes all sessions):
+await auth.consumePasswordReset(token, newPassword);
+
+// Authenticated change — verifies the current password first.
+await auth.changePassword(userId, currentPassword, newPassword);
+```
+
 ## Permission cache
 
 Pure RBAC decisions can be memoized over any `CacheClient` (the infra

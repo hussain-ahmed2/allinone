@@ -89,6 +89,12 @@ auth.register({ email, password, name }): Promise<User>
 auth.login({ email, password, tenantId }): Promise<{ session, refreshToken }>
 auth.rotateRefresh(refreshToken): Promise<{ session, refreshToken }>
 auth.logout(sessionId)
+auth.requestEmailVerification(userId): { token, expiresAt }       // email/token flows
+auth.verifyEmail(token): Promise<User>                             // single-use, 24h
+auth.requestPasswordReset(email): { token, expiresAt } | null      // null → generic response
+auth.consumePasswordReset(token, newPassword): Promise<User>       // single-use; revokes sessions
+auth.changePassword(userId, current, next): Promise<void>          // audit-friendly
+auth.setSuspended(userId, boolean)
 auth.startTotpEnrollment(userId, { issuer }): { secret, otpauthUri }
 auth.confirmTotpEnrollment(userId, code): { recoveryCodes }
 auth.verifyTotp(userId, code): boolean          // replay-protected
