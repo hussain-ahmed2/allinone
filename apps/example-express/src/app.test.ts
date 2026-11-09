@@ -161,6 +161,24 @@ describe("example-express", () => {
     });
   });
 
+  it("admin manifest adapts to the actor's permissions", async () => {
+    await withServer(async (base) => {
+      const admin = await register(base, "boss@example.com");
+      const full = await fetch(`${base}/api/admin/manifest`, { headers: { cookie: admin.cookie } });
+      expect(full.status).toBe(200);
+      const manifestFull = (await full.json()) as {
+        modules: { name: string; sections: { slug: string }[] }[];
+        collections: { slug: string }[];
+        tenantId: string;
+      };
+      expect(manifestFull.collections.map((c) => c.slug)).toEqual(["users", "posts"]);
+      expect(manifestFull.tenantId).toBeTruthy();
+
+      const anon = await fetch(`${base}/api/admin/manifest`);
+      expect(anon.status).toBe(401);
+    });
+  });
+
   it("cross-tenant access is forbidden", async () => {
     await withServer(async (base) => {
       const one = await register(base, "one@example.com");

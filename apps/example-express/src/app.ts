@@ -9,6 +9,7 @@
  */
 import { createPlatform, presets } from "allinone";
 import { can, generateToken } from "@allinone/auth";
+import { buildAdminManifest } from "@allinone/infra";
 import express, { type NextFunction, type Request, type Response } from "express";
 
 declare global {
@@ -28,7 +29,14 @@ export interface ExampleState {
 }
 
 const ROLES = new Map([
-  ["admin", { id: "admin", name: "Admin", permissions: ["users.*", "cms.posts.*", "keys.manage"] }],
+  [
+    "admin",
+    {
+      id: "admin",
+      name: "Admin",
+      permissions: ["users.*", "posts.*", "cms.posts.*", "keys.manage"],
+    },
+  ],
   [
     "editor",
     { id: "editor", name: "Editor", permissions: ["posts.read", "posts.create", "posts.publish"] },
@@ -552,6 +560,25 @@ export async function createApp(): Promise<{ app: express.Express; platform: Pla
         tenant: platform.tenants.get(req.tenantId ?? "") ?? null,
         roles: rolesOf(req.tenantId ?? "", session.userId),
       });
+    }),
+  );
+
+  app.get(
+    "/api/admin/manifest",
+    requireAuth,
+    requireTenant,
+    ah(async (req, res) => {
+      const session = readSession(req);
+      if (!session) return;
+      const tenantId = req.tenantId ?? "";
+      audit(req, "admin.manifest", "manifest", "success");
+      res.json(
+        buildAdminManifest({
+          actor: { id: session.userId, roles: rolesOf(tenantId, session.userId) },
+          tenantId,
+          rolesById: ROLES,
+        }),
+      );
     }),
   );
 

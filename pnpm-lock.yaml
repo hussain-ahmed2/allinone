@@ -83,6 +83,9 @@ importers:
       '@allinone/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@allinone/infra':
+        specifier: workspace:*
+        version: link:../../packages/infra
       allinone:
         specifier: workspace:*
         version: link:../../packages/platform

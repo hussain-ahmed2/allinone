@@ -54,8 +54,8 @@ export interface AdminManifest {
   modules: AdminModule[];
   collections: AdminCollection[];
   /** Handlers the renderer may invoke (server-enforced, see note). */
-  actions: readonly string[];
-  widgets: readonly string[];
+  actions: string[];
+  widgets: string[];
 }
 
 export interface AdminConfig {
@@ -186,8 +186,8 @@ export function buildAdminManifest(input: {
     tenantId: input.tenantId,
     modules,
     collections,
-    actions: config.actions ?? ["publish", "revoke-key", "resend-invite", "export"],
-    widgets: config.widgets ?? ["activity", "tenants", "system-health"],
+    actions: [...(config.actions ?? ["publish", "revoke-key", "resend-invite", "export"])],
+    widgets: [...(config.widgets ?? ["activity", "tenants", "system-health"])],
   };
 }
 
