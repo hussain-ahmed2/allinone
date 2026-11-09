@@ -99,6 +99,9 @@ scryptHasher(), generateToken(), hashToken()
 evaluatePolicy(query, roles, policies?): PolicyDecision   // default-deny
 can(query, roles, policies?): boolean
 effectivePermissions(roleId, rolesById): string[]
+createPermissionCache({ cache, ttlSeconds }): PermissionCache
+  .can(query, roles, tenantId, policies?): Promise<boolean>  // versioned keys + invalidation
+  .invalidateActor(actorId) / .invalidateTenant(tenantId)
 createOidcProvider(config, fetch?): { discovery, buildAuthorizationUrl, exchangeCode }
 ```
 

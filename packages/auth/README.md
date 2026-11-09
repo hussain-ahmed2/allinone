@@ -59,6 +59,25 @@ increase (cloned authenticators are rejected); a credential belongs to
 exactly one user. Verification delegates to `@simplewebauthn/server` —
 never custom crypto.
 
+## Permission cache
+
+Pure RBAC decisions can be memoized over any `CacheClient` (the infra
+`MemoryCache` or the Redis cache provider). Keys are versioned per
+actor + tenant — invalidation is a single counter bump:
+
+```ts
+import { createPermissionCache } from "@allinone/auth";
+
+const permissions = createPermissionCache({ cache, ttlSeconds: 300 });
+const allowed = await permissions.can(query, rolesById, tenantId);
+await permissions.invalidateActor(userId); // role change for one user
+await permissions.invalidateTenant(tenantId); // bulk role/policy change
+```
+
+Custom ABAC conditions depend on request attributes and are never cached
+(evaluated fresh). Cache outages degrade to fresh evaluation — the cache
+is never an authorization boundary.
+
 ## SSO (OIDC + PKCE)
 
 ```ts

@@ -258,6 +258,13 @@ export function AuthzPage() {
       />
       <Code>{AUTHZ_EXAMPLE}</Code>
       <Note>Authorization is enforced on the server — never merely hidden in an admin UI.</Note>
+      <Code title="Permission cache (Redis/Memory)">
+        {`import { createPermissionCache } from "@allinone/auth";
+const permissions = createPermissionCache({ cache, ttlSeconds: 300 });
+const allowed = await permissions.can(query, rolesById, tenantId);
+await permissions.invalidateActor(userId);   // role change
+await permissions.invalidateTenant(tenantId); // bulk change`}
+      </Code>
     </>
   );
 }
