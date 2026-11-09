@@ -1,0 +1,14 @@
+{
+  // allinone — VS Code ESLint extension settings (monorepo root).
+  // The repo root is the only working directory; this keeps the
+  // extension using ./eslint.config.mjs and resolves @allinone/*
+  // via tsconfig paths (no build needed for type-aware linting).
+  "eslint.enable": true,
+  "eslint.workingDirectories": ["./"],
+  "eslint.options": {
+    "useFlatConfig": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}

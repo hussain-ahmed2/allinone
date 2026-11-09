@@ -27,6 +27,16 @@ export function quoteIdentifier(name: string): string {
   return `"${name}"`;
 }
 
+/**
+ * Fully-qualified table reference for schema-per-tenant isolation.
+ * Both identifiers are validated — an unsafe schema is rejected.
+ */
+export function tableRef(collection: string, schema?: string): string {
+  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+  if (schema === undefined) return table;
+  return `${quoteIdentifier(assertIdentifier(schema, "table"))}.${table}`;
+}
+
 /** Escape LIKE/ILIKE wildcards in user data (pattern injection defense). */
 function escapeLike(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
@@ -130,8 +140,9 @@ export function buildSelectQuery(
   collection: string,
   options: QueryOptions | undefined,
   tenantId: string | undefined,
+  schema?: string,
 ): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+  const table = tableRef(collection, schema);
   const bag = createParamBag();
   const clauses: string[] = ['"deleted_at" IS NULL'];
 
@@ -174,8 +185,8 @@ export function buildSelectQuery(
 }
 
 /** CREATE TABLE statement for one collection (JSONB document + metadata). */
-export function buildCreateTableQuery(collection: string): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+export function buildCreateTableQuery(collection: string, schema?: string): BuiltQuery {
+  const table = tableRef(collection, schema);
   const text =
     `CREATE TABLE IF NOT EXISTS ${table} (` +
     `"id" TEXT PRIMARY KEY, ` +
@@ -195,8 +206,12 @@ export interface InsertRow {
 }
 
 /** INSERT ... RETURNING for a batch. */
-export function buildInsertQuery(collection: string, rows: readonly InsertRow[]): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+export function buildInsertQuery(
+  collection: string,
+  rows: readonly InsertRow[],
+  schema?: string,
+): BuiltQuery {
+  const table = tableRef(collection, schema);
   const bag = createParamBag();
   const tuples = rows.map(
     (r) => `(${bag.push(r.id)}, ${bag.push(r.tenantId ?? null)}, ${bag.push(r.data)}::jsonb)`,
@@ -212,8 +227,9 @@ export function buildSoftDeleteQuery(
   collection: string,
   id: string,
   tenantId: string | undefined,
+  schema?: string,
 ): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+  const table = tableRef(collection, schema);
   const bag = createParamBag();
   const idPh = bag.push(id);
   let text =
@@ -236,8 +252,9 @@ export function buildUpdateQuery(
   id: string,
   fullJson: string,
   tenantId: string | undefined,
+  schema?: string,
 ): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+  const table = tableRef(collection, schema);
   const bag = createParamBag();
   const jsonPh = bag.push(fullJson);
   const idPh = bag.push(id);
@@ -259,8 +276,9 @@ export function buildOptimisticUpdateQuery(
   fullJson: string,
   expectedVersion: number,
   tenantId: string | undefined,
+  schema?: string,
 ): BuiltQuery {
-  const table = quoteIdentifier(assertIdentifier(collection, "table"));
+  const table = tableRef(collection, schema);
   const bag = createParamBag();
   const jsonPh = bag.push(fullJson);
   const idPh = bag.push(id);

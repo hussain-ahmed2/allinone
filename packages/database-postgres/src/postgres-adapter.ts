@@ -52,6 +52,12 @@ export interface PostgresAdapterOptions {
   queryable?: Queryable;
   /** Max pool size (default 10). */
   max?: number;
+  /**
+   * Schema-per-tenant strategy: resolve the Postgres schema for a tenant.
+   * When provided, every query is qualified with that schema
+   * (e.g. `"tenant_acme"."users"`). Return `undefined` for shared-schema.
+   */
+  schemaProvider?: (tenantId: string) => string | undefined;
 }
 
 export interface PostgresRowRecord extends QueryResultRow {
@@ -103,8 +109,9 @@ const MIGRATIONS_TABLE = "allinone_migrations";
  * ```
  */
 export function createPostgresAdapter(options: PostgresAdapterOptions = {}): PostgresAdapter {
+  const schemaProvider = options.schemaProvider;
   if (options.queryable) {
-    return new PostgresAdapter(options.queryable, undefined);
+    return new PostgresAdapter(options.queryable, undefined, schemaProvider);
   }
   const pool = new Pool(
     options.pool ?? {
@@ -112,7 +119,12 @@ export function createPostgresAdapter(options: PostgresAdapterOptions = {}): Pos
       max: options.max ?? 10,
     },
   );
-  return new PostgresAdapter(pool, pool);
+  return new PostgresAdapter(pool, pool, schemaProvider);
+}
+
+/** Conventional tenant schema name (`tenant_<slug>`). */
+export function tenantSchemaName(slug: string): string {
+  return `tenant_${slug.replace(/[^a-zA-Z0-9_]/g, "_").replace(/^./, (c) => (c >= "0" && c <= "9" ? "_" : c))}`;
 }
 
 export class PostgresAdapter implements DatabaseAdapter {
@@ -120,14 +132,25 @@ export class PostgresAdapter implements DatabaseAdapter {
   readonly capabilities = { ...postgresCapabilities };
   readonly #queryable: Queryable;
   readonly #pool: Pool | undefined;
+  readonly #schemaProvider: ((tenantId: string) => string | undefined) | undefined;
   #client: PoolClient | undefined;
   #txDepth = 0;
   #savepointSeq = 0;
   #connected = false;
 
-  constructor(queryable: Queryable, pool: Pool | undefined) {
+  constructor(
+    queryable: Queryable,
+    pool: Pool | undefined,
+    schemaProvider?: (tenantId: string) => string | undefined,
+  ) {
     this.#queryable = queryable;
     this.#pool = pool;
+    this.#schemaProvider = schemaProvider;
+  }
+
+  /** Resolve schema for tenant-scoped operations (undefined = shared). */
+  #schemaFor(tenantId: string | undefined): string | undefined {
+    return tenantId ? this.#schemaProvider?.(tenantId) : undefined;
   }
 
   /** Active executor — the tx client inside transactions, else the pool. */
@@ -163,13 +186,14 @@ export class PostgresAdapter implements DatabaseAdapter {
     return this.#exec().query<T>(text, params);
   }
 
-  async createTable(collection: string): Promise<void> {
+  async createTable(collection: string, schema?: string): Promise<void> {
     assertIdentifier(collection, "table");
-    const q = buildCreateTableQuery(collection);
+    if (schema !== undefined) assertIdentifier(schema, "table");
+    const q = buildCreateTableQuery(collection, schema);
     await this.query(q.text);
     // Tenant lookup index (btree — portable). JSONB GIN index is created
     // best-effort below for real Postgres; pg-mem may reject it.
-    const table = `"${collection}"`;
+    const table = schema ? `"${schema}"."${collection}"` : `"${collection}"`;
     await this.query(
       `CREATE INDEX IF NOT EXISTS "${collection}_tenant_idx" ON ${table} ("tenant_id")`,
     );
@@ -182,6 +206,26 @@ export class PostgresAdapter implements DatabaseAdapter {
     }
   }
 
+  /**
+   * Provision a tenant schema + tables (separate-schema strategy).
+   * The schema name comes from `schemaProvider` — create one per tenant
+   * at tenant registration; queries then qualify via the provider.
+   */
+  async createTenantSchema(tenantId: string, collections: readonly string[]): Promise<void> {
+    const schema = this.#schemaFor(tenantId);
+    if (!schema) {
+      throw new Error(
+        "[allinone/database-postgres] No schema for tenant " +
+          JSON.stringify(tenantId) +
+          " — configure schemaProvider or use shared-schema strategy.",
+      );
+    }
+    await this.query(`CREATE SCHEMA IF NOT EXISTS "${assertIdentifier(schema, "table")}"`);
+    for (const collection of collections) {
+      await this.createTable(collection, schema);
+    }
+  }
+
   async insert(collection: string, rows: readonly Row[], ctx?: AdapterContext): Promise<Row[]> {
     if (rows.length === 0) return [];
     const tenantId = ctx?.tenantId;
@@ -190,14 +234,14 @@ export class PostgresAdapter implements DatabaseAdapter {
       tenantId,
       data: JSON.stringify(row),
     }));
-    const q = buildInsertQuery(collection, insertRows);
+    const q = buildInsertQuery(collection, insertRows, this.#schemaFor(tenantId));
     const result = await this.query<PostgresRowRecord>(q.text, q.params);
     return result.rows.map(toRow);
   }
 
   async find(collection: string, options?: QueryOptions, ctx?: AdapterContext): Promise<Row[]> {
     const tenantId = options?.tenantId ?? ctx?.tenantId;
-    const q = buildSelectQuery(collection, options, tenantId);
+    const q = buildSelectQuery(collection, options, tenantId, this.#schemaFor(tenantId));
     const result = await this.query<PostgresRowRecord>(q.text, q.params);
     return result.rows.map(toRow);
   }
@@ -211,7 +255,10 @@ export class PostgresAdapter implements DatabaseAdapter {
     id: string,
     tenantId: string | undefined,
   ): Promise<PostgresRowRecord | null> {
-    const table = `"${assertIdentifier(collection, "table")}"`;
+    const schema = this.#schemaFor(tenantId);
+    const table = schema
+      ? `"${assertIdentifier(schema, "table")}"."${assertIdentifier(collection, "table")}"`
+      : `"${assertIdentifier(collection, "table")}"`;
     const params: unknown[] = [id];
     let text =
       `SELECT "id", "tenant_id", "data", "created_at", "updated_at", "version" ` +
@@ -234,7 +281,13 @@ export class PostgresAdapter implements DatabaseAdapter {
     const existing = await this.#getRecord(collection, id, tenantId);
     if (!existing) return null;
     const merged: Row = { ...existing.data, ...patch };
-    const q = buildUpdateQuery(collection, id, JSON.stringify(merged), tenantId);
+    const q = buildUpdateQuery(
+      collection,
+      id,
+      JSON.stringify(merged),
+      tenantId,
+      this.#schemaFor(tenantId),
+    );
     const result = await this.query<PostgresRowRecord>(q.text, q.params);
     const [record] = result.rows;
     return record ? toRow(record) : null;
@@ -261,6 +314,7 @@ export class PostgresAdapter implements DatabaseAdapter {
       JSON.stringify(merged),
       expectedVersion,
       tenantId,
+      this.#schemaFor(tenantId),
     );
     const result = await this.query<PostgresRowRecord>(q.text, q.params);
     const [record] = result.rows;
@@ -269,7 +323,7 @@ export class PostgresAdapter implements DatabaseAdapter {
 
   async remove(collection: string, id: string, ctx?: AdapterContext): Promise<boolean> {
     const tenantId = ctx?.tenantId;
-    const q = buildSoftDeleteQuery(collection, id, tenantId);
+    const q = buildSoftDeleteQuery(collection, id, tenantId, this.#schemaFor(tenantId));
     const result = await this.query<PostgresRowRecord>(q.text, q.params);
     return result.rows.length > 0;
   }
@@ -279,7 +333,10 @@ export class PostgresAdapter implements DatabaseAdapter {
    * is not acceptable. Soft-delete remains the default (`remove()`).
    */
   async hardRemove(collection: string, id: string, ctx?: AdapterContext): Promise<boolean> {
-    const table = `"${assertIdentifier(collection, "table")}"`;
+    const schema = this.#schemaFor(ctx?.tenantId);
+    const table = schema
+      ? `"${assertIdentifier(schema, "table")}"."${assertIdentifier(collection, "table")}"`
+      : `"${assertIdentifier(collection, "table")}"`;
     const params: unknown[] = [id];
     let text = `DELETE FROM ${table} WHERE "id" = $1`;
     if (ctx?.tenantId !== undefined) {

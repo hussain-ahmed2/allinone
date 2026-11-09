@@ -62,6 +62,23 @@ await db.find("users", {
 // → [allinone/database-mongodb] Operator "eq" requires a primitive value
 ```
 
+## Multi-tenancy strategies
+
+- **Shared-schema** (default): every query carries a `tenantId`
+  predicate.
+- **Database-per-tenant**: pass `dbProvider` mapping tenant →
+  database name; queries route to that tenant's database (validated
+  names). Provision at registration time:
+
+```ts
+const db = createMongoAdapter({
+  connectionString: process.env["MONGO_URL"],
+  dbName: "allinone",
+  dbProvider: (tenantId) => tenantDbName(tenantId), // app_<tenant>
+});
+await db.createTenantDatabase("acme", ["users", "posts"]);
+```
+
 ## Testing
 
 Tests run against local `mongod` (`mongodb://127.0.0.1:27017` by default,

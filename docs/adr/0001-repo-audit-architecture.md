@@ -30,19 +30,20 @@ assumed framework API.
 
 ## Roadmap (milestones)
 
-| Milestone | Scope                                                  | Status                                                      |
-| --------- | ------------------------------------------------------ | ----------------------------------------------------------- |
-| Phase 0   | Audit + ADR + roadmap                                  | ✅ done (this doc)                                          |
-| Phase 1   | Core, config, presets, lifecycle, plugins              | ✅ done                                                     |
-| Phase 2   | Database abstraction + memory adapter + conformance    | ✅ done (memory, Postgres, Mongo)                           |
-| Phase 3   | Identity + RBAC/ABAC + audit                           | ✅ done (in-memory); DB persistence next                    |
-| Phase 4   | Multi-tenancy (registry, context, isolation)           | ✅ done (shared-schema); separate-schema/DB-per-tenant next |
-| Phase 5   | CMS + revisions                                        | ✅ done (core store)                                        |
-| Phase 6   | Infra (cache/api-keys/webhooks/subs/rate-limit/health) | ✅ done                                                     |
-| Phase 7a  | PostgreSQL adapter (conformance + live PG17)           | ✅ done                                                     |
-| Phase 7b  | MongoDB adapter (conformance + local mongod)           | ✅ done                                                     |
-| Phase 7c  | SSO/OIDC + TOTP MFA + recovery codes                   | ✅ done                                                     |
-| Phase 7d+ | Separate-schema tenancy, deployment examples           | ⬜ next                                                     |
+| Milestone | Scope                                                  | Status                                                             |
+| --------- | ------------------------------------------------------ | ------------------------------------------------------------------ |
+| Phase 0   | Audit + ADR + roadmap                                  | ✅ done (this doc)                                                 |
+| Phase 1   | Core, config, presets, lifecycle, plugins              | ✅ done                                                            |
+| Phase 2   | Database abstraction + memory adapter + conformance    | ✅ done (memory, Postgres, Mongo)                                  |
+| Phase 3   | Identity + RBAC/ABAC + audit                           | ✅ done (in-memory); DB persistence next                           |
+| Phase 4   | Multi-tenancy (registry, context, isolation)           | ✅ done (shared-schema + separate-schema PG + DB-per-tenant Mongo) |
+| Phase 5   | CMS + revisions                                        | ✅ done (core store)                                               |
+| Phase 6   | Infra (cache/api-keys/webhooks/subs/rate-limit/health) | ✅ done                                                            |
+| Phase 7a  | PostgreSQL adapter (conformance + live PG17)           | ✅ done                                                            |
+| Phase 7b  | MongoDB adapter (conformance + local mongod)           | ✅ done                                                            |
+| Phase 7c  | SSO/OIDC + TOTP MFA + recovery codes                   | ✅ done                                                            |
+| Phase 7d  | Separate-schema tenancy (schema-per-tenant PG)         | ✅ done                                                            |
+| Phase 7e+ | Database-per-tenant, deployment examples               | ⬜ next (Mongo DB-per-tenant done)                                 |
 
 ## Threat model (summary)
 

@@ -100,7 +100,7 @@ const ROADMAP = [
   { phase: "7a", title: "Postgres adapter (conformance + live PG17)", status: "done" },
   { phase: "7b", title: "MongoDB adapter (conformance + local mongod)", status: "done" },
   { phase: "7c", title: "SSO / OIDC, TOTP MFA, recovery codes", status: "done" },
-  { phase: "7d", title: "Separate-schema + database-per-tenant strategies", status: "next" },
+  { phase: "7d", title: "Separate-schema (PG) + DB-per-tenant (Mongo)", status: "done" },
   { phase: "7e", title: "Deployment examples, load + security benchmarking", status: "next" },
 ] as const;
 

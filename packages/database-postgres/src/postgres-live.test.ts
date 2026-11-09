@@ -146,6 +146,43 @@ describe("postgres live integration", () => {
     expect(jsonb.rows).toHaveLength(1);
   });
 
+  it("schema-per-tenant isolates tenants at the schema level", async () => {
+    const db = await live();
+    if (!db) return;
+    const schemas = new Map([
+      ["t1", `tenant_a_${RUN}`],
+      ["t2", `tenant_b_${RUN}`],
+    ]);
+    const scoped = createPostgresAdapter({
+      connectionString:
+        process.env["POSTGRES_TEST_URL"] ??
+        process.env["DATABASE_URL"] ??
+        "postgres://postgres:testpass@localhost:5433/allinone_test",
+      schemaProvider: (tenantId) => schemas.get(tenantId),
+    });
+    await scoped.connect();
+    try {
+      const table = t("live_tenant_items");
+      await scoped.createTenantSchema("t1", [table]);
+      await scoped.createTenantSchema("t2", [table]);
+      await scoped.insert(table, [{ id: "a", v: 1 }], { tenantId: "t1" });
+      await scoped.insert(table, [{ id: "b", v: 2 }], { tenantId: "t2" });
+      expect((await scoped.find(table, { tenantId: "t1" })).map((r) => r["id"])).toEqual(["a"]);
+      expect((await scoped.find(table, { tenantId: "t2" })).map((r) => r["id"])).toEqual(["b"]);
+      // Same id in the other tenant's schema must not collide.
+      await scoped.insert(table, [{ id: "a", v: 9 }], { tenantId: "t2" });
+      const t2Rows = await scoped.find(table, {
+        tenantId: "t2",
+        sort: [{ field: "id", direction: "asc" }],
+      });
+      expect(t2Rows.map((r) => r["id"])).toEqual(["a", "b"]);
+      // Provisioning without a provider mapping fails loudly.
+      await expect(scoped.createTenantSchema("t3", [table])).rejects.toThrow(/No schema/);
+    } finally {
+      await scoped.disconnect();
+    }
+  });
+
   it("RLS helper installs tenant policies", async () => {
     const db = await live();
     if (!db) return;

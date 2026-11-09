@@ -68,6 +68,27 @@ await db.migrate([
 Migrations run each in its own transaction and record in
 `allinone_migrations`; re-runs are idempotent.
 
+## Multi-tenancy strategies
+
+- **Shared-schema** (default): every query carries a `tenant_id`
+  predicate (validated + parameterized).
+- **Separate-schema**: pass `schemaProvider` mapping tenant → schema.
+  Queries qualify with `"schema"."table"` (identifiers whitelisted).
+  Provision at registration time:
+
+```ts
+const db = createPostgresAdapter({
+  connectionString: process.env["DATABASE_URL"],
+  schemaProvider: (tenantId) => `tenant_${tenantId}`,
+});
+await db.createTenantSchema("acme", ["users", "posts"]); // CREATE SCHEMA + tables
+```
+
+- **Database-per-tenant**: use a separate `db`/`Pool` per tenant
+  database (strongest isolation, highest ops cost).
+- **RLS** (defense in depth): `enableTenantRowLevelSecurity()` +
+  `withTenantSetting()` for row-level policies.
+
 ## Testing
 
 - Unit tests run against `pg-mem` (no infrastructure needed):

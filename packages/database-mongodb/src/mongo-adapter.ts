@@ -32,6 +32,29 @@ export interface MongoAdapterOptions {
   connectionString?: string;
   dbName?: string;
   client?: MongoClient;
+  /**
+   * Database-per-tenant strategy: resolve the Mongo database name for
+   * a tenant. When provided, every query runs against that tenant's
+   * database (hard isolation). `undefined` means shared-schema.
+   */
+  dbProvider?: (tenantId: string) => string | undefined;
+}
+
+const DB_NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** Conventional per-tenant database name (`app_<slug>`). */
+export function tenantDbName(slug: string): string {
+  return `app_${slug.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+}
+
+export function assertDbName(name: string): string {
+  if (!DB_NAME_RE.test(name)) {
+    throw new Error(
+      `[allinone/database-mongodb] Invalid database name: ${JSON.stringify(name)}. ` +
+        `Use /^[A-Za-z0-9_-]{1,64}$/ names.`,
+    );
+  }
+  return name;
 }
 
 export const mongoCapabilities = {
@@ -73,6 +96,7 @@ export class MongoAdapter implements DatabaseAdapter {
   readonly name = "mongodb";
   readonly capabilities = { ...mongoCapabilities };
   readonly #client: MongoClient;
+  readonly #dbProvider: ((tenantId: string) => string | undefined) | undefined;
   #db: Db | undefined;
   #connected = false;
 
@@ -83,13 +107,20 @@ export class MongoAdapter implements DatabaseAdapter {
         options.connectionString ?? process.env["MONGO_URL"] ?? "mongodb://127.0.0.1:27017",
       );
     this.#dbName = options.dbName ?? "allinone";
+    this.#dbProvider = options.dbProvider;
   }
 
   readonly #dbName: string;
 
-  #collection(name: string): ReturnType<Db["collection"]> {
+  /** Resolve the Db handle for a tenant (base db when unscoped). */
+  #dbFor(tenantId: string | undefined): Db {
     if (!this.#db) throw new Error("[allinone/database-mongodb] Adapter not connected");
-    return this.#db.collection(name);
+    const name = tenantId ? this.#dbProvider?.(tenantId) : undefined;
+    return name ? this.#client.db(assertDbName(name)) : this.#db;
+  }
+
+  #collection(name: string, tenantId?: string): ReturnType<Db["collection"]> {
+    return this.#dbFor(tenantId).collection(name);
   }
 
   async connect(): Promise<void> {
@@ -111,19 +142,33 @@ export class MongoAdapter implements DatabaseAdapter {
     return { ok: this.#connected, latencyMs: Math.round(performance.now() - started) };
   }
 
-  async createCollection(name: string): Promise<void> {
-    if (!this.#db) throw new Error("[allinone/database-mongodb] Adapter not connected");
-    await this.#db.createCollection(name);
-    await this.#db
-      .collection(name)
-      .createIndex({ tenantId: 1 }, { sparse: true, name: "tenant_idx" });
-    await this.#db
-      .collection(name)
-      .createIndex({ deletedAt: 1 }, { sparse: true, name: "deleted_idx" });
+  async createCollection(name: string, tenantId?: string): Promise<void> {
+    const db = this.#dbFor(tenantId);
+    await db.createCollection(name);
+    await db.collection(name).createIndex({ tenantId: 1 }, { sparse: true, name: "tenant_idx" });
+    await db.collection(name).createIndex({ deletedAt: 1 }, { sparse: true, name: "deleted_idx" });
   }
 
-  async createTable(collection: string): Promise<void> {
-    await this.createCollection(collection);
+  async createTable(collection: string, tenantId?: string): Promise<void> {
+    await this.createCollection(collection, tenantId);
+  }
+
+  /**
+   * Provision a tenant database + collections (database-per-tenant).
+   * Point `dbProvider` at this mapping; queries route by tenant afterwards.
+   */
+  async createTenantDatabase(tenantId: string, collections: readonly string[]): Promise<void> {
+    const name = this.#dbProvider?.(tenantId);
+    if (!name) {
+      throw new Error(
+        "[allinone/database-mongodb] No database for tenant " +
+          JSON.stringify(tenantId) +
+          " — configure dbProvider or use shared-schema strategy.",
+      );
+    }
+    for (const collection of collections) {
+      await this.createTable(collection, tenantId);
+    }
   }
 
   async insert(collection: string, rows: readonly Row[], ctx?: AdapterContext): Promise<Row[]> {
@@ -137,14 +182,14 @@ export class MongoAdapter implements DatabaseAdapter {
       _updatedAt: now,
       _version: 1,
     }));
-    await this.#collection(collection).insertMany(docs);
+    await this.#collection(collection, ctx?.tenantId).insertMany(docs);
     return docs.map(toRow);
   }
 
   async find(collection: string, options?: QueryOptions, ctx?: AdapterContext): Promise<Row[]> {
     const tenantId = options?.tenantId ?? ctx?.tenantId;
     const query = buildQuery(options?.filters ?? [], tenantId);
-    let cursor = this.#collection(collection).find(query);
+    let cursor = this.#collection(collection, tenantId).find(query);
     const sorts = options?.sort ?? [];
     if (sorts.length > 0) {
       const spec: Record<string, 1 | -1> = {};
@@ -181,9 +226,13 @@ export class MongoAdapter implements DatabaseAdapter {
       $set: { ...patch, _updatedAt: new Date().toISOString() },
       $inc: { _version: 1 },
     };
-    const result = await this.#collection(collection).findOneAndUpdate(filter, update, {
-      returnDocument: "after",
-    });
+    const result = await this.#collection(collection, ctx?.tenantId).findOneAndUpdate(
+      filter,
+      update,
+      {
+        returnDocument: "after",
+      },
+    );
     return result ? toRow(result) : null;
   }
 
@@ -208,16 +257,20 @@ export class MongoAdapter implements DatabaseAdapter {
       $set: { ...patch, _updatedAt: new Date().toISOString() },
       $inc: { _version: 1 },
     };
-    const result = await this.#collection(collection).findOneAndUpdate(filter, update, {
-      returnDocument: "after",
-    });
+    const result = await this.#collection(collection, ctx?.tenantId).findOneAndUpdate(
+      filter,
+      update,
+      {
+        returnDocument: "after",
+      },
+    );
     return result ? toRow(result) : null;
   }
 
   async remove(collection: string, id: string, ctx?: AdapterContext): Promise<boolean> {
     const filter: MongoFilterClause = { _id: id, deletedAt: { $exists: false } };
     if (ctx?.tenantId !== undefined) filter["tenantId"] = ctx.tenantId;
-    const result = await this.#collection(collection).findOneAndUpdate(
+    const result = await this.#collection(collection, ctx?.tenantId).findOneAndUpdate(
       filter,
       { $set: { deletedAt: new Date().toISOString() } },
       { returnDocument: "after" },
@@ -231,7 +284,7 @@ export class MongoAdapter implements DatabaseAdapter {
   async hardRemove(collection: string, id: string, ctx?: AdapterContext): Promise<boolean> {
     const filter: MongoFilterClause = { _id: id };
     if (ctx?.tenantId !== undefined) filter["tenantId"] = ctx.tenantId;
-    const result = await this.#collection(collection).deleteOne(filter);
+    const result = await this.#collection(collection, ctx?.tenantId).deleteOne(filter);
     return result.deletedCount > 0;
   }
 
@@ -259,11 +312,12 @@ export class MongoAdapter implements DatabaseAdapter {
   async aggregate(
     collection: string,
     pipeline: readonly Record<string, unknown>[],
+    tenantId?: string,
   ): Promise<unknown[]> {
     if (!Array.isArray(pipeline)) {
       throw new Error("[allinone/database-mongodb] pipeline must be an array");
     }
-    return this.#collection(collection).aggregate(pipeline).toArray();
+    return this.#collection(collection, tenantId).aggregate(pipeline).toArray();
   }
 
   isConnected(): boolean {

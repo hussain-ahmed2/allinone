@@ -15,7 +15,15 @@ import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "apps/docs/dist/**"],
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "apps/docs/dist/**",
+      // Stray tsc outputs must never be linted (they are not project inputs).
+      "packages/*/src/**/*.d.ts",
+      "packages/*/src/**/*.js",
+      "packages/*/src/**/*.map",
+    ],
   },
   {
     files: ["packages/*/src/**/*.ts", "apps/example/src/**/*.ts"],

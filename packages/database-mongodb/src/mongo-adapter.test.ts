@@ -5,7 +5,7 @@ import {
   UnsupportedCapabilityError,
   type DatabaseAdapter,
 } from "@allinone/database";
-import { createMongoAdapter, type MongoAdapter } from "./index.js";
+import { assertDbName, createMongoAdapter, tenantDbName, type MongoAdapter } from "./index.js";
 
 const URL = process.env["MONGO_TEST_URL"] ?? "mongodb://127.0.0.1:27017";
 
@@ -129,6 +129,32 @@ describe("mongo adapter (local mongod)", () => {
     ).rejects.toThrow(/requires a primitive/);
     // Rejected queries never executed — data intact.
     expect(await adapter.find("users", {})).toHaveLength(1);
+  });
+
+  it("database-per-tenant routes queries to tenant databases", async () => {
+    const dbs = new Map([
+      ["t1", tenantDbName(`a_${Date.now().toString(36)}`)],
+      ["t2", tenantDbName(`b_${Date.now().toString(36)}`)],
+    ]);
+    const scoped = createMongoAdapter({
+      connectionString: URL,
+      dbName: `base_${Date.now().toString(36)}`,
+      dbProvider: (tenantId) => dbs.get(tenantId),
+    });
+    await scoped.connect();
+    try {
+      await scoped.createTable("items", "t1");
+      await scoped.createTable("items", "t2");
+      await scoped.insert("items", [{ id: "a" }], { tenantId: "t1" });
+      await scoped.insert("items", [{ id: "b" }], { tenantId: "t2" });
+      expect((await scoped.find("items", { tenantId: "t1" })).map((r) => r["id"])).toEqual(["a"]);
+      expect((await scoped.find("items", { tenantId: "t2" })).map((r) => r["id"])).toEqual(["b"]);
+      // DB-name validation rejects provider output that is not a safe name.
+      expect(() => assertDbName("x; drop database")).toThrow(/Invalid database name/);
+      await expect(scoped.createTenantDatabase("t3", ["items"])).rejects.toThrow(/No database/);
+    } finally {
+      await scoped.disconnect();
+    }
   });
 
   it("runs data migrations idempotently", async () => {
