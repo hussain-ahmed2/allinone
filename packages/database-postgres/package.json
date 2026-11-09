@@ -1,0 +1,31 @@
+{
+  "name": "@allinone/database-postgres",
+  "version": "0.1.0",
+  "description": "PostgreSQL adapter for @allinone/database — parameterized queries, transactions with savepoints, tenant isolation, soft deletes",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allinone/database": "workspace:*",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0",
+    "pg-mem": "^3.0.0",
+    "vitest": "^3.0.0"
+  }
+}
