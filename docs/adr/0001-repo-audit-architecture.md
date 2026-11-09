@@ -34,7 +34,7 @@ assumed framework API.
 | --------- | ------------------------------------------------------ | ------------------------------------------------------------------ |
 | Phase 0   | Audit + ADR + roadmap                                  | ✅ done (this doc)                                                 |
 | Phase 1   | Core, config, presets, lifecycle, plugins              | ✅ done                                                            |
-| Phase 2   | Database abstraction + memory adapter + conformance    | ✅ done (memory, Postgres, Mongo, MySQL, SQLite, Redis)            |
+| Phase 2   | Database abstraction + memory adapter + conformance    | ✅ done (memory, Postgres, Mongo, MySQL, SQLite, MSSQL, Redis)     |
 | Phase 3   | Identity + RBAC/ABAC + audit                           | ✅ done (in-memory); DB persistence next                           |
 | Phase 4   | Multi-tenancy (registry, context, isolation)           | ✅ done (shared-schema + separate-schema PG + DB-per-tenant Mongo) |
 | Phase 5   | CMS + revisions                                        | ✅ done (core store)                                               |
@@ -50,7 +50,8 @@ assumed framework API.
 | Phase 7i  | Storage providers (local FS + S3), media library       | ✅ done                                                            |
 | Phase 7j  | Email notifications (Nodemailer SMTP)                  | ✅ done                                                            |
 | Phase 7k  | Workflows engine (approvals, retries, history)         | ✅ done                                                            |
-| Phase 7l+ | Admin metadata APIs, MSSQL, scheduler, search          | ⬜ next                                                            |
+| Phase 7l  | MSSQL adapter (T-SQL JSON_VALUE, RLS session ctx)      | ✅ done                                                            |
+| Phase 7m+ | Redis permission cache wiring, scheduler, search       | ⬜ next                                                            |
 
 ## Threat model (summary)
 

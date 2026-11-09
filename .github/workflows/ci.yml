@@ -18,6 +18,7 @@ jobs:
       POSTGRES_TEST_URL: postgres://postgres:testpass@localhost:5433/allinone_test
       MONGO_TEST_URL: mongodb://127.0.0.1:27017
       MYSQL_TEST_URL: mysql://test:testpass@127.0.0.1:3307/allinone_test
+      MSSQL_TEST_URL: mssql://sa:TestPass1!@127.0.0.1:1433/allinone_test
       REDIS_TEST_URL: redis://127.0.0.1:6380
     steps:
       - name: Checkout
@@ -37,8 +38,9 @@ jobs:
           docker run -d --name pg -e POSTGRES_PASSWORD=testpass -e POSTGRES_DB=allinone_test -p 5433:5432 --rm postgres:17
           docker run -d --name mongod -e MONGO_INITDB_DATABASE=allinone_test -p 27017:27017 --rm mongo:7
           docker run -d --name mysql -e MARIADB_ROOT_PASSWORD=testpass -e MARIADB_DATABASE=allinone_test -e MARIADB_USER=test -e MARIADB_PASSWORD=testpass -p 3307:3306 --rm mariadb:11
+          docker run -d --name mssql -e ACCEPT_EULA=Y -e SA_PASSWORD=TestPass1! -p 1433:1433 --rm mcr.microsoft.com/mssql/server:2022-latest
           docker run -d --name redis -p 6380:6379 --rm redis:7
-      - name: Wait for Postgres / MySQL / Redis
+      - name: Wait for Postgres / MySQL / MSSQL / Redis
         run: node .github/workflows/wait-for-services.mjs
       - name: Wait for MongoDB
         run: |
@@ -56,10 +58,10 @@ jobs:
       - name: Dump datastore logs on failure
         if: failure()
         run: |
-          for c in pg mongod mysql redis; do
+          for c in pg mongod mysql mssql redis; do
             echo "===== $c ====="
             docker logs --tail 40 "$c" || true
           done
       - name: Clean up datastores
         if: always()
-        run: docker rm -f pg mongod mysql redis || true
+        run: docker rm -f pg mongod mysql mssql redis || true

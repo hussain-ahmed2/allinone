@@ -42,6 +42,12 @@ const MODULES = [
     tag: "MariaDB 11 verified",
   },
   {
+    name: "MSSQL",
+    pkg: "@allinone/database-mssql",
+    desc: "MSSQL — T-SQL JSON_VALUE, savepoints, RLS context.",
+    tag: "CI-only live",
+  },
+  {
     name: "SQLite",
     pkg: "@allinone/database-sqlite",
     desc: "SQLite via node:sqlite — JSON docs, zero native deps.",

@@ -1,0 +1,32 @@
+{
+  "name": "@allinone/database-mssql",
+  "version": "0.1.0",
+  "description": "Microsoft SQL Server adapter for @allinone/database — T-SQL JSON, transactions with savepoints, row-level security",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allinone/database": "workspace:*",
+    "mssql": "^12.7.0"
+  },
+  "devDependencies": {
+    "@types/mssql": "^12.0.0",
+    "vitest": "^3.0.0"
+  }
+}

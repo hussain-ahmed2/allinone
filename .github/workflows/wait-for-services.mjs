@@ -1,7 +1,8 @@
 import { createConnection } from "node:net";
 
 async function wait(port, label) {
-  const deadline = Date.now() + 120_000;
+  // MSSQL first boot takes ~60-90s on cold images; keep headroom.
+  const deadline = Date.now() + 180_000;
   for (;;) {
     try {
       await new Promise((resolve, reject) => {
@@ -31,6 +32,7 @@ async function wait(port, label) {
 await Promise.all([
   wait(5433, "postgres"),
   wait(3307, "mysql"),
+  wait(1433, "mssql"),
   wait(6380, "redis"),
 ]);
 process.exit(0);
