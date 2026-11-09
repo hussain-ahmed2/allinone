@@ -22,10 +22,12 @@
     "docs:dev": "pnpm --filter @allinone/docs dev",
     "docs:build": "pnpm --filter @allinone/docs build",
     "example": "pnpm --filter @allinone/example start",
+    "example:express": "pnpm --filter @allinone/example-express start",
     "bench": "pnpm build && node benchmarks/bench.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.10.0",
     "eslint": "^10.14.0",
     "prettier": "^3.4.2",

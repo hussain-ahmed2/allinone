@@ -3,6 +3,7 @@ import { GITHUB, NAV_GROUPS } from "./components/Docs.js";
 import { OverviewPage } from "./pages/OverviewPage.js";
 import { InstallPage } from "./pages/InstallPage.js";
 import { PresetsPage, QuickStartPage } from "./pages/GettingStartedPages.js";
+import { ExpressPage } from "./pages/ExpressPage.js";
 import {
   AuthPage,
   AuthzPage,
@@ -79,6 +80,7 @@ function Layout() {
             <Route path="/install" element={<InstallPage />} />
             <Route path="/quickstart" element={<QuickStartPage />} />
             <Route path="/presets" element={<PresetsPage />} />
+            <Route path="/express" element={<ExpressPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
             <Route path="/database" element={<DatabasePage />} />
             <Route path="/tenancy" element={<TenancyPage />} />

@@ -74,6 +74,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/install", label: "Install" },
       { to: "/quickstart", label: "Quick start" },
       { to: "/presets", label: "Compose & presets" },
+      { to: "/express", label: "Express integration" },
       { to: "/architecture", label: "Architecture" },
     ],
   },

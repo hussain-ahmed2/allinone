@@ -26,7 +26,7 @@ export default defineConfig([
     ],
   },
   {
-    files: ["packages/*/src/**/*.ts", "apps/example/src/**/*.ts"],
+    files: ["packages/*/src/**/*.ts", "apps/*/src/**/*.ts"],
     extends: [
       js.configs.recommended,
       tseslint.configs.strictTypeChecked,
@@ -60,7 +60,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["apps/example/src/**/*.ts"],
+    files: ["apps/*/src/**/*.ts"],
     rules: {
       "no-console": "off",
     },
