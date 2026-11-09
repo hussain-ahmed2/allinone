@@ -20,6 +20,10 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/nodemailer": "^6.4.0",
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "nodemailer": "^10.4.0"
   }
 }

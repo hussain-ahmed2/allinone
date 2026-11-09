@@ -36,6 +36,7 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "nodemailer": "^10.4.0",
     "react-router": "^8.5.1"
   }
 }

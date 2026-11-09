@@ -131,6 +131,8 @@ new MemoryCache()         // CacheProvider (get/set/delete) with TTL
 new SubscriptionStore()   // addPlan / subscribe / entitlement / usage / isLimitExceeded
 new RateLimiter(max, windowSeconds)  .allow(key): boolean
 createLogger(sink): { info, warn, error }      // structured JSON lines
+createSmtpMailer(opts): NotificationProvider    // nodemailer SMTP + templates
+escapeHtml(s) / renderTemplate(tpl, vars)
 aggregateHealth(checks): Promise<HealthStatus>
 ```
 

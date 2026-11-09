@@ -327,6 +327,11 @@ export function InfraPage() {
         }
       />
       <Code>{INFRA_EXAMPLE}</Code>
+      <Note>
+        Email: <code>{"createSmtpMailer({ host, user, pass, from })"}</code> implements the shared{" "}
+        <code>NotificationProvider</code> interface — inject a fake <code>sendMail</code> for tests.
+        Templates escape user values by default.
+      </Note>
     </>
   );
 }
