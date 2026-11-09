@@ -83,6 +83,9 @@ importers:
       '@allinone/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@allinone/database-redis':
+        specifier: workspace:*
+        version: link:../../packages/database-redis
       '@allinone/infra':
         specifier: workspace:*
         version: link:../../packages/infra

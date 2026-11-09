@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@allinone/auth": "workspace:*",
+    "@allinone/database-redis": "workspace:*",
     "@allinone/infra": "workspace:*",
     "allinone": "workspace:*",
     "express": "^5.1.0"

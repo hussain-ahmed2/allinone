@@ -181,6 +181,28 @@ const { record, secret } = platform.apiKeys.create({
 const record = platform.apiKeys.verify(xApiKey, "status.read");
 if (!record) res.status(403).json(...);`}
       </Code>
+      <h2>Permission cache (Redis)</h2>
+      <p>
+        The <code>requirePermission</code> guard can be backed by a cache: create the platform with{" "}
+        <code>useRedisCache</code> and <code>REDIS_URL</code> in the environment. Role changes
+        invalidate versioned keys (<code>invalidateActor</code>); tenants can be bulk invalidated
+        with <code>invalidateTenant</code>.
+      </p>
+      <Code title="Permission-cache wiring">
+        {`// apps/example-express/src/app.ts
+const permissionCache = useRedisCache === true
+  ? createPermissionCache({ cache: redisDb.asCacheProvider(), ttlSeconds: 60 })
+  : undefined;
+
+// requirePermission: await permissionCache?.can(query, ROLES, tenantId) ?? can(query, ROLES)
+// role changes: await permissionCache?.invalidateActor(userId);`}
+      </Code>
+      <h2>Admin schema metadata</h2>
+      <p>
+        <code>GET /api/admin/schema</code> (auth + tenant required) returns collection metadata for
+        the admin renderer — fields, CRUD actions, and the permission each requires, filtered by the
+        actor's roles server-side. The renderer never re-derives permissions.
+      </p>
       <h2>Audit</h2>
       <p>
         Every privileged action appends a tenant-scoped audit event:

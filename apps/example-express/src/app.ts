@@ -8,8 +8,9 @@
  * Run:  pnpm example:express   (http://localhost:3000)
  */
 import { createPlatform, presets } from "allinone";
-import { can, generateToken } from "@allinone/auth";
+import { can, createPermissionCache, generateToken } from "@allinone/auth";
 import { buildAdminManifest } from "@allinone/infra";
+import { createRedisAdapter } from "@allinone/database-redis";
 import express, { type NextFunction, type Request, type Response } from "express";
 
 declare global {
@@ -50,7 +51,9 @@ function errorPayload(code: string, message: string, reason?: string) {
 
 type Platform = ReturnType<typeof createPlatform>;
 
-export async function createApp(): Promise<{ app: express.Express; platform: Platform }> {
+export async function createApp(options?: {
+  useRedisCache?: boolean;
+}): Promise<{ app: express.Express; platform: Platform }> {
   const platform = createPlatform({
     preset: presets.saas(),
     database: { adapter: "memory" },
@@ -59,6 +62,20 @@ export async function createApp(): Promise<{ app: express.Express; platform: Pla
     cms: { enabled: true },
   });
   await platform.initialize();
+
+  // Optional Redis-backed permission cache (fail-open: cache outages only
+  // fall back to fresh evaluation, never to open access).
+  let permissionCache: ReturnType<typeof createPermissionCache> | undefined;
+  if (options?.useRedisCache === true && process.env["REDIS_URL"]) {
+    try {
+      const redisDb = createRedisAdapter({ url: process.env["REDIS_URL"] });
+      await redisDb.connect();
+      permissionCache = createPermissionCache({ cache: redisDb.asCacheProvider(), ttlSeconds: 60 });
+      console.log("[example-express] permission cache enabled (redis)");
+    } catch (error) {
+      console.warn("[example-express] redis unavailable, continuing uncached:", error);
+    }
+  }
 
   const state: ExampleState = {
     sessions: new Map(),
@@ -200,29 +217,37 @@ export async function createApp(): Promise<{ app: express.Express; platform: Pla
         return;
       }
       const tenantId = req.tenantId ?? session.tenantId;
-      const allowed = can(
-        {
-          actor: { id: session.userId, roles: rolesOf(tenantId, session.userId), attributes: {} },
-          action,
-          resource,
-          context: { requestId: String(res.locals["requestId"] ?? "") },
+      const query = {
+        actor: {
+          id: session.userId,
+          roles: rolesOf(tenantId, session.userId),
+          attributes: {},
         },
-        ROLES,
-      );
-      if (!allowed) {
-        audit(req, "authorization.check", `${resource}.${action}`, "failure");
-        res
-          .status(403)
-          .json(
-            errorPayload(
-              "FORBIDDEN",
-              `Missing permission: ${resource}.${action}`,
-              "no-matching-permission",
-            ),
-          );
-        return;
-      }
-      next();
+        action,
+        resource,
+        context: { requestId: String(res.locals["requestId"] ?? "") },
+      };
+      const decision = permissionCache
+        ? permissionCache.can(query, ROLES, tenantId)
+        : Promise.resolve(can(query, ROLES));
+      void decision
+        .then((allowed) => {
+          if (!allowed) {
+            audit(req, "authorization.check", `${resource}.${action}`, "failure");
+            res
+              .status(403)
+              .json(
+                errorPayload(
+                  "FORBIDDEN",
+                  `Missing permission: ${resource}.${action}`,
+                  "no-matching-permission",
+                ),
+              );
+            return;
+          }
+          next();
+        })
+        .catch(next);
     };
   }
 
@@ -462,6 +487,7 @@ export async function createApp(): Promise<{ app: express.Express; platform: Pla
         return;
       }
       grantMembership(tenantId, userId, role);
+      await permissionCache?.invalidateActor(userId);
       audit(req, "tenancy.member.add", tenantId, "success");
       res.json({ ok: true });
     }),
@@ -579,6 +605,44 @@ export async function createApp(): Promise<{ app: express.Express; platform: Pla
           rolesById: ROLES,
         }),
       );
+    }),
+  );
+
+  /**
+   * Collection schema for the admin renderer — field defs, CRUD actions,
+   * and the permission each one requires (manifest-filtered per actor).
+   */
+  app.get(
+    "/api/admin/schema",
+    requireAuth,
+    requireTenant,
+    ah(async (req, res) => {
+      const session = readSession(req);
+      if (!session) return;
+      const tenantId = req.tenantId ?? "";
+      const manifest = buildAdminManifest({
+        actor: { id: session.userId, roles: rolesOf(tenantId, session.userId) },
+        tenantId,
+        rolesById: ROLES,
+      });
+      audit(req, "admin.schema", "schema", "success");
+      res.json({
+        tenantId,
+        collections: manifest.collections.map((collection) => ({
+          slug: collection.slug,
+          name: collection.name,
+          fields: collection.fields,
+          actions: [
+            { name: "list", permission: collection.permissions.read, method: "GET" },
+            ...(collection.permissions.create
+              ? [{ name: "create", permission: collection.permissions.create, method: "POST" }]
+              : []),
+            ...(collection.hasPublish
+              ? [{ name: "publish", permission: "posts.publish", method: "POST" }]
+              : []),
+          ],
+        })),
+      });
     }),
   );
 

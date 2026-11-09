@@ -179,6 +179,48 @@ describe("example-express", () => {
     });
   });
 
+  it("admin schema metadata is permission-shaped", async () => {
+    await withServer(async (base) => {
+      const admin = await register(base, "schema-boss@example.com");
+      const adminMe = (await (
+        await fetch(`${base}/api/admin/me`, { headers: { cookie: admin.cookie } })
+      ).json()) as { tenant: { id: string } };
+      const schema = (await (
+        await fetch(`${base}/api/admin/schema`, {
+          headers: { cookie: admin.cookie, "x-tenant-id": adminMe.tenant.id },
+        })
+      ).json()) as {
+        collections: {
+          slug: string;
+          fields: { key: string }[];
+          actions: { name: string }[];
+        }[];
+      };
+      expect(schema.collections.map((c) => c.slug)).toEqual(["users", "posts"]);
+      expect(schema.collections.find((c) => c.slug === "users")?.fields).toBeTruthy();
+
+      // Viewer: membership is granted first (tenant gate), then the
+      // schema is shaped by their permissions (posts.read only).
+      const viewer = await register(base, "schema-viewer@example.com");
+      await fetch(`${base}/api/tenants/${adminMe.tenant.id}/members`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          cookie: admin.cookie,
+          "x-tenant-id": adminMe.tenant.id,
+          ...(admin.csrf ? { "x-csrf-token": admin.csrf } : {}),
+        },
+        body: JSON.stringify({ userId: viewer.user.id, role: "viewer" }),
+      });
+      const viewerSchema = (await (
+        await fetch(`${base}/api/admin/schema`, {
+          headers: { cookie: viewer.cookie, "x-tenant-id": adminMe.tenant.id },
+        })
+      ).json()) as { collections: { slug: string }[] };
+      expect(viewerSchema.collections.map((c) => c.slug)).toEqual(["posts"]);
+    });
+  });
+
   it("cross-tenant access is forbidden", async () => {
     await withServer(async (base) => {
       const one = await register(base, "one@example.com");
