@@ -43,7 +43,8 @@ assumed framework API.
 | Phase 7b  | MongoDB adapter (conformance + local mongod)           | ✅ done                                                            |
 | Phase 7c  | SSO/OIDC + TOTP MFA + recovery codes                   | ✅ done                                                            |
 | Phase 7d  | Separate-schema tenancy (schema-per-tenant PG)         | ✅ done                                                            |
-| Phase 7e+ | Database-per-tenant, deployment examples               | ⬜ next (Mongo DB-per-tenant done)                                 |
+| Phase 7e  | Deployment guide + examples                            | ✅ done (docs/DEPLOYMENT, docker stack)                            |
+| Phase 7f  | Load/security benchmarking                             | ✅ done (smoke bench script; k6 for full load tests)               |
 
 ## Threat model (summary)
 
