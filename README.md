@@ -1,5 +1,8 @@
 # allinone
 
+![Docs](https://github.com/hussain-ahmed2/allinone/actions/workflows/docs.yml/badge.svg)
+📚 [Documentation](https://hussain-ahmed2.github.io/allinone/)
+
 > Universal application platform — secure by default, database-agnostic, framework-native.
 
 Build SaaS, multi-tenant, CMS, e-commerce, and enterprise applications without
