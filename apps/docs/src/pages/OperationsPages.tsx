@@ -36,6 +36,12 @@ const MODULES = [
     tag: "local mongod",
   },
   {
+    name: "MySQL",
+    pkg: "@allinone/database-mysql",
+    desc: "MySQL/MariaDB — InnoDB, prepared statements, savepoints.",
+    tag: "MariaDB 11 verified",
+  },
+  {
     name: "Tenancy",
     pkg: "@allinone/tenancy",
     desc: "Registry, async-safe context, membership-validated resolvers.",

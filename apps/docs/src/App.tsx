@@ -20,9 +20,10 @@ import {
   SecurityPage,
 } from "./pages/OperationsPages.js";
 
-// HashRouter + Vite base path makes GitHub Pages project hosting work
-// (routes live in the URL hash; assets use the /allinone/ prefix).
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
+// HashRouter makes GitHub Pages project hosting work without server
+// rewrites (routes live in the URL hash; Vite base handles asset paths).
+// NOTE: HashRouter must NOT receive the /allinone basename — it would
+// expect hashes like #/allinone/install instead of #/install.
 
 function Layout() {
   return (
@@ -109,7 +110,7 @@ function Layout() {
 
 export function App() {
   return (
-    <HashRouter basename={BASE_PATH || "/"}>
+    <HashRouter>
       <Layout />
     </HashRouter>
   );

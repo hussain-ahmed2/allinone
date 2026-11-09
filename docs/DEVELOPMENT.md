@@ -40,6 +40,7 @@ Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
 | `packages/database`          | `@allinone/database`          | Adapter contract, typed fields, memory adapter          |
 | `packages/database-postgres` | `@allinone/database-postgres` | PostgreSQL adapter (pg-mem unit + live PG17 tests)      |
 | `packages/database-mongodb`  | `@allinone/database-mongodb`  | MongoDB adapter (local mongod tests)                    |
+| `packages/database-mysql`    | `@allinone/database-mysql`    | MySQL/MariaDB adapter (Docker MariaDB tests)            |
 | `packages/tenancy`           | `@allinone/tenancy`           | Tenant registry, explicit context, resolvers            |
 | `packages/auth`              | `@allinone/auth`              | Identity, sessions, RBAC/ABAC                           |
 | `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                      |

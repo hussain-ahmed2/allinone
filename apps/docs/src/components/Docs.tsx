@@ -122,7 +122,7 @@ export const ROADMAP = [
   { phase: "7d", title: "Separate-schema (PG) + DB-per-tenant (Mongo)", status: "done" },
   { phase: "7e", title: "Deployment guide + docker stack + benchmarks", status: "done" },
   { phase: "7f", title: "CI checks + API reference + troubleshooting", status: "done" },
-  { phase: "7g", title: "MySQL/MariaDB adapter", status: "next" },
+  { phase: "7g", title: "MySQL/MariaDB adapter", status: "done" },
   { phase: "7h", title: "SQLite + Redis adapters", status: "next" },
   { phase: "7i", title: "Passkeys/WebAuthn, proven in production", status: "next" },
 ] as const;

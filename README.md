@@ -38,6 +38,7 @@ await platform.shutdown();
 | `@allinone/database`             | Database-agnostic adapter contract, typed fields, conformance suite   |
 | `@allinone/database-postgres`    | PostgreSQL adapter — transactions, migrations, RLS, soft deletes      |
 | `@allinone/database-mongodb`     | MongoDB adapter — document-native, NoSQL-injection-safe               |
+| `@allinone/database-mysql`       | MySQL/MariaDB adapter — InnoDB, prepared statements, savepoints       |
 | `@allinone/tenancy`              | Multi-tenancy: registry, explicit context, safe resolvers             |
 | `@allinone/auth`                 | Identity, sessions, RBAC + ABAC (default-deny)                        |
 | `@allinone/cms`                  | Headless CMS: collections, revisions, publishing                      |
@@ -74,12 +75,14 @@ pnpm example      # runnable example app
 
 ## Status
 
-Phase 0–6 milestones are implemented with tests. The PostgreSQL adapter
-(`@allinone/database-postgres`) is conformance-tested (pg-mem unit +
-live Postgres 17 integration), as is the MongoDB adapter
-(`@allinone/database-mongodb`, local mongod). SSO/TOTP MFA and deployment
-examples are the next milestones — see the architecture roadmap. No
-payment provider is hard-coupled; billing is adapter-based.
+Phase 0–6 milestones are implemented with tests. The PostgreSQL
+(`@allinone/database-postgres`, pg-mem + live PG17), MongoDB
+(`@allinone/database-mongodb`, local mongod), and MySQL/MariaDB
+(`@allinone/database-mysql`, Docker MariaDB 11) adapters are all
+conformance-tested. SSO/TOTP MFA, schema-per-tenant, and deployment
+guides are shipped; CI + Pages deploy release pipeline; test-proven
+variants cover SQLite/Redis/passkeys next. No payment provider is
+hard-coupled; billing is adapter-based.
 
 Run live tests against Docker Postgres:
 

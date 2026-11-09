@@ -9,9 +9,10 @@
  *    interpolation of values into queries.
  *
  * The `memory` adapter ships in-repo (tests + examples); PostgreSQL
- * (`@allinone/database-postgres`, live PG17 tested) and MongoDB
- * (`@allinone/database-mongodb`, local mongod tested) ship as separate
- * packages. Other adapters (MySQL / ...) ship as separate,
+ * (`@allinone/database-postgres`, live PG17 tested), MongoDB
+ * (`@allinone/database-mongodb`, local mongod tested), and MySQL/MariaDB
+ * (`@allinone/database-mysql`, Docker MariaDB tested) ship as separate
+ * packages. Other adapters (SQLite / Redis / ...) ship as separate,
  * conformance-tested packages — do not claim support until
  * `runAdapterConformance()` passes.
  */
