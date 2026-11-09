@@ -32,5 +32,8 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.72.1",
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "react-router": "^8.5.1"
   }
 }

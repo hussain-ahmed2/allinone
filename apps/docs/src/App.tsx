@@ -1,136 +1,43 @@
-import { useState } from "react";
+import { HashRouter, Link, NavLink, Route, Routes } from "react-router";
+import { GITHUB, NAV_GROUPS } from "./components/Docs.js";
+import { OverviewPage } from "./pages/OverviewPage.js";
+import { InstallPage } from "./pages/InstallPage.js";
+import { PresetsPage, QuickStartPage } from "./pages/GettingStartedPages.js";
+import {
+  AuthPage,
+  AuthzPage,
+  CmsPage,
+  DatabasePage,
+  InfraPage,
+  SsoPage,
+  TenancyPage,
+} from "./pages/GuidesPages.js";
+import {
+  ArchitecturePage,
+  DeploymentPage,
+  NotFoundPage,
+  RoadmapPage,
+  SecurityPage,
+} from "./pages/OperationsPages.js";
 
-const QUICKSTART = `import { createPlatform, presets, fields } from "allinone";
+// HashRouter + Vite base path makes GitHub Pages project hosting work
+// (routes live in the URL hash; assets use the /allinone/ prefix).
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-const platform = createPlatform({
-  preset: presets.saas(),
-  database: { adapter: "memory" }, // swap for postgres / mongo adapters
-  auth: { mfa: true },
-  cms: { enabled: true },
-});
-
-await platform.initialize();
-
-// Typed collection (schema DSL — database-agnostic)
-const User = {
-  name: "users",
-  fields: {
-    id: fields.uuid(),
-    name: fields.string({ required: true }),
-    email: fields.email({ unique: true }),
-    role: fields.enum(["admin", "user"]),
-  },
-};
-
-await platform.shutdown();`;
-
-const NAV = [
-  { id: "overview", label: "Overview" },
-  { id: "quickstart", label: "Quick start" },
-  { id: "architecture", label: "Architecture" },
-  { id: "presets", label: "Presets" },
-  { id: "security", label: "Security model" },
-  { id: "roadmap", label: "Roadmap" },
-  {
-    id: "api-reference",
-    label: "API reference ↗",
-    href: "https://github.com/hussain-ahmed2/allinone/blob/main/docs/API.md",
-  },
-  {
-    id: "troubleshooting",
-    label: "Troubleshooting ↗",
-    href: "https://github.com/hussain-ahmed2/allinone/blob/main/docs/TROUBLESHOOTING.md",
-  },
-] as const;
-
-const MODULES = [
-  {
-    name: "Config",
-    pkg: "@allinone/config",
-    desc: "Typed config, defaults, security invariants that cannot be silently disabled.",
-  },
-  {
-    name: "Database",
-    pkg: "@allinone/database",
-    desc: "Capability-matrix adapter contract, typed fields, conformance suite.",
-    tag: "memory adapter included",
-  },
-  {
-    name: "Postgres",
-    pkg: "@allinone/database-postgres",
-    desc: "PostgreSQL adapter — transactions, migrations, RLS, soft deletes.",
-    tag: "PG17 verified",
-  },
-  {
-    name: "MongoDB",
-    pkg: "@allinone/database-mongodb",
-    desc: "MongoDB adapter — document-native, NoSQL-injection-safe.",
-    tag: "transactions honestly false",
-  },
-  {
-    name: "Tenancy",
-    pkg: "@allinone/tenancy",
-    desc: "Tenant registry, explicit async-safe context, membership-validated resolvers.",
-    tag: "shared-schema",
-  },
-  {
-    name: "Auth",
-    pkg: "@allinone/auth",
-    desc: "Identity, sessions, RBAC + ABAC, TOTP MFA + OIDC SSO.",
-    tag: "scrypt + token rotation",
-  },
-  {
-    name: "CMS",
-    pkg: "@allinone/cms",
-    desc: "Collections, revisions, draft → review → publish workflow.",
-    tag: "localization-ready",
-  },
-  {
-    name: "Infra",
-    pkg: "@allinone/infra",
-    desc: "Audit, API keys, webhooks, cache, subscriptions, rate limiting.",
-    tag: "all opt-in",
-  },
-] as const;
-
-const PRESETS = [
-  { name: "starter", desc: "Single tenant, auth, basic RBAC, audit, storage." },
-  { name: "saas", desc: "Multi-tenancy, orgs, billing, API keys, webhooks, entitlements." },
-  { name: "enterprise", desc: "Hybrid tenancy, MFA, workflows, 365-day audit retention." },
-  { name: "cms", desc: "Headless CMS, media, localization, SEO, content APIs." },
-  { name: "ecommerce", desc: "Customers, catalog, orders, payment adapters, webhooks." },
-] as const;
-
-const ROADMAP = [
-  {
-    phase: "0–6",
-    title: "Core + database (memory) + identity + tenancy + CMS + infra",
-    status: "done",
-  },
-  { phase: "7a", title: "Postgres adapter (conformance + live PG17)", status: "done" },
-  { phase: "7b", title: "MongoDB adapter (conformance + local mongod)", status: "done" },
-  { phase: "7c", title: "SSO / OIDC, TOTP MFA, recovery codes", status: "done" },
-  { phase: "7d", title: "Separate-schema (PG) + DB-per-tenant (Mongo)", status: "done" },
-  { phase: "7e", title: "Deployment guide + docker stack + benchmarks", status: "done" },
-] as const;
-
-export function App() {
-  const [activePreset, setActivePreset] = useState<string>("saas");
-
+function Layout() {
   return (
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <a className="brand" href="#overview">
+          <Link className="brand" to="/">
             <span className="brand-mark">a1</span>
             <span>allinone docs</span>
-          </a>
+          </Link>
           <nav aria-label="Primary">
-            <a href="#quickstart">Quick start</a>
-            <a href="#architecture">Architecture</a>
-            <a href="#presets">Presets</a>
-            <a href="#security">Security</a>
-            <a href="#roadmap">Roadmap</a>
+            <NavLink to="/quickstart">Quick start</NavLink>
+            <NavLink to="/database">Database</NavLink>
+            <NavLink to="/auth">Auth</NavLink>
+            <NavLink to="/security">Security</NavLink>
           </nav>
         </div>
       </header>
@@ -138,187 +45,72 @@ export function App() {
       <div className="layout">
         <aside className="sidebar" aria-label="Docs navigation">
           <h2>Documentation</h2>
-          <ul>
-            {NAV.map((item) => (
-              <li key={item.id}>
-                {"href" in item && item.href ? (
-                  <a href={item.href} target="_blank" rel="noreferrer">
-                    {item.label}
-                  </a>
-                ) : (
-                  <a href={`#${item.id}`}>{item.label}</a>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.group} className="sidebar-group">
+              <div className="sidebar-group-title">{group.group}</div>
+              <ul>
+                {group.entries.map((entry) =>
+                  entry.external ? (
+                    <li key={entry.label}>
+                      <a href={entry.external} target="_blank" rel="noreferrer">
+                        {entry.label}
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={entry.label}>
+                      <NavLink
+                        to={entry.to}
+                        className={({ isActive }) => (isActive ? "active" : "")}
+                      >
+                        {entry.label}
+                      </NavLink>
+                    </li>
+                  ),
                 )}
-              </li>
-            ))}
-          </ul>
+              </ul>
+            </div>
+          ))}
         </aside>
 
         <main className="main">
-          <section id="overview" className="hero">
-            <h1>
-              Universal application platform, <span className="accent">secure by default</span>.
-            </h1>
-            <p>
-              allinone is a modular package ecosystem for custom TypeScript frameworks —
-              authentication, multi-tenancy, CMS, audit logging, and application infrastructure
-              included. Database-agnostic, framework-native, preset-driven.
-            </p>
-            <div className="cta-row">
-              <a className="btn btn-primary" href="#quickstart">
-                Get started
-              </a>
-              <a className="btn" href="#architecture">
-                View architecture
-              </a>
-            </div>
-          </section>
-
-          <section id="quickstart" className="section">
-            <h2>Quick start</h2>
-            <pre>
-              <code>{QUICKSTART}</code>
-            </pre>
-          </section>
-
-          <section id="architecture" className="section">
-            <h2>Architecture</h2>
-            <div className="box-grid">
-              {MODULES.map((m) => (
-                <article className="box" key={m.name}>
-                  <h3>{m.name}</h3>
-                  <p>{m.desc}</p>
-                  <span className="tag">{m.pkg}</span>
-                  {(m as { tag?: string }).tag ? (
-                    <span className="tag">{(m as { tag?: string }).tag}</span>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section id="presets" className="section">
-            <h2>Presets</h2>
-            <p>
-              Click a preset to preview its intent — presets are composable and every section can be
-              overridden without replacing the preset.
-            </p>
-            <div className="chip-row" role="tablist" aria-label="Presets">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  role="tab"
-                  aria-selected={activePreset === p.name}
-                  className={activePreset === p.name ? "chip active" : "chip"}
-                  onClick={() => setActivePreset(p.name)}
-                >
-                  {p.name}()
-                </button>
-              ))}
-            </div>
-            <pre>
-              <code>{`createPlatform({
-  preset: presets.${activePreset}(),
-  database: { adapter: "memory" },
-  // override any single section:
-  auth: { mfa: true },
-});`}</code>
-            </pre>
-          </section>
-
-          <section id="security" className="section">
-            <h2>Security model</h2>
-            <div className="box-grid">
-              <article className="box">
-                <h3>Default-deny authorization</h3>
-                <p>
-                  Every RBAC/ABAC check fails closed. Unknown permissions, evaluation errors, and
-                  missing roles all deny.
-                </p>
-              </article>
-              <article className="box">
-                <h3>Tenant isolation</h3>
-                <p>
-                  Enforced at query time, with explicit async-safe context and membership-validated
-                  resolvers. Never trust client tenant IDs.
-                </p>
-              </article>
-              <article className="box">
-                <h3>Token security</h3>
-                <p>
-                  Refresh tokens stored as SHA-256 hashes, rotated on use; reuse revokes the token
-                  family. Passwords hashed (scrypt).
-                </p>
-              </article>
-              <article className="box">
-                <h3>Honest capabilities</h3>
-                <p>
-                  Adapters declare what they support. Unsupported operations throw instead of being
-                  silently simulated.
-                </p>
-              </article>
-            </div>
-            <div className="table-wrap section">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Invariant</th>
-                    <th>Enforcement</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Default-deny stays enabled</td>
-                    <td>assertSecure() throws</td>
-                  </tr>
-                  <tr>
-                    <td>Tenant isolation stays enabled</td>
-                    <td>assertSecure() throws</td>
-                  </tr>
-                  <tr>
-                    <td>Cookies httpOnly + secure</td>
-                    <td>Throws unless dangerouslyAllowInsecure</td>
-                  </tr>
-                  <tr>
-                    <td>Refresh token rotation</td>
-                    <td>Required; reuse revokes family</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section id="roadmap" className="section">
-            <h2>Roadmap</h2>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Phase</th>
-                    <th>Scope</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ROADMAP.map((r) => (
-                    <tr key={r.phase}>
-                      <td>{r.phase}</td>
-                      <td>{r.title}</td>
-                      <td>
-                        <span className="tag">{r.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <Routes>
+            <Route index element={<OverviewPage />} />
+            <Route path="/install" element={<InstallPage />} />
+            <Route path="/quickstart" element={<QuickStartPage />} />
+            <Route path="/presets" element={<PresetsPage />} />
+            <Route path="/architecture" element={<ArchitecturePage />} />
+            <Route path="/database" element={<DatabasePage />} />
+            <Route path="/tenancy" element={<TenancyPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/sso" element={<SsoPage />} />
+            <Route path="/authz" element={<AuthzPage />} />
+            <Route path="/cms" element={<CmsPage />} />
+            <Route path="/infra" element={<InfraPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/deployment" element={<DeploymentPage />} />
+            <Route path="/roadmap" element={<RoadmapPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
         </main>
       </div>
 
       <footer className="footer">
         <span>allinone — MIT</span>
-        <span>Secure by default · Database-agnostic · Framework-native</span>
+        <span>
+          Secure by default · Database-agnostic · Framework-native ·{" "}
+          <a href={GITHUB} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </span>
       </footer>
     </>
+  );
+}
+
+export function App() {
+  return (
+    <HashRouter basename={BASE_PATH || "/"}>
+      <Layout />
+    </HashRouter>
   );
 }
