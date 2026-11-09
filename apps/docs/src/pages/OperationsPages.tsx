@@ -54,6 +54,12 @@ const MODULES = [
     tag: "Redis 7 verified",
   },
   {
+    name: "Storage",
+    pkg: "@allinone/storage",
+    desc: "Local FS + S3 providers, validated uploads, media library.",
+    tag: "magic-byte verified",
+  },
+  {
     name: "Tenancy",
     pkg: "@allinone/tenancy",
     desc: "Registry, async-safe context, membership-validated resolvers.",

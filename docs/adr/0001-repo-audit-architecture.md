@@ -47,7 +47,8 @@ assumed framework API.
 | Phase 7f  | Load/security benchmarking                             | ✅ done (smoke bench script; k6 for full load tests)               |
 | Phase 7g  | MySQL/MariaDB adapter                                  | ✅ done (conformance + Docker MariaDB 11)                          |
 | Phase 7h  | SQLite + Redis adapters                                | ✅ done                                                            |
-| Phase 7i+ | Passkeys/WebAuthn, MSSQL, admin metadata APIs          | ⬜ next                                                            |
+| Phase 7i  | Storage providers (local FS + S3), media library       | ✅ done                                                            |
+| Phase 7j+ | Passkeys/WebAuthn, MSSQL, admin metadata APIs          | ⬜ next (passkeys done)                                            |
 
 ## Threat model (summary)
 

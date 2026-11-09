@@ -11,7 +11,11 @@ async function withServer(fn: (base: string) => Promise<void>): Promise<void> {
     await fn(`http://127.0.0.1:${String(address.port)}`);
   } finally {
     await platform.shutdown();
-    await new Promise<void>((resolve) => server.close(() => { resolve(); }));
+    await new Promise<void>((resolve) =>
+      server.close(() => {
+        resolve();
+      }),
+    );
   }
 }
 

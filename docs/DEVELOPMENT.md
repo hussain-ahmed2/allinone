@@ -43,6 +43,7 @@ Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
 | `packages/database-mysql`    | `@allinone/database-mysql`    | MySQL/MariaDB adapter (Docker MariaDB tests)            |
 | `packages/database-sqlite`   | `@allinone/database-sqlite`   | SQLite adapter (`:memory:` tests)                       |
 | `packages/database-redis`    | `@allinone/database-redis`    | Redis adapter (Docker Redis tests)                      |
+| `packages/storage`           | `@allinone/storage`           | Local FS + S3 providers, media library                  |
 | `packages/tenancy`           | `@allinone/tenancy`           | Tenant registry, explicit context, resolvers            |
 | `packages/auth`              | `@allinone/auth`              | Identity, sessions, RBAC/ABAC                           |
 | `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                      |
