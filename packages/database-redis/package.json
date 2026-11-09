@@ -1,0 +1,32 @@
+{
+  "name": "@allinone/database-redis",
+  "version": "0.1.0",
+  "description": "Redis adapter for @allinone/database — key-value documents, cache provider, tenant-scoped keys",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allinone/database": "workspace:*",
+    "@allinone/infra": "workspace:*",
+    "redis": "^5.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

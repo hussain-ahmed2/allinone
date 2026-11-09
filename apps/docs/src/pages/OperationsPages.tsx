@@ -42,6 +42,18 @@ const MODULES = [
     tag: "MariaDB 11 verified",
   },
   {
+    name: "SQLite",
+    pkg: "@allinone/database-sqlite",
+    desc: "SQLite via node:sqlite — JSON docs, zero native deps.",
+    tag: ":memory: tests",
+  },
+  {
+    name: "Redis",
+    pkg: "@allinone/database-redis",
+    desc: "Redis KV documents + infra cache provider.",
+    tag: "Redis 7 verified",
+  },
+  {
     name: "Tenancy",
     pkg: "@allinone/tenancy",
     desc: "Registry, async-safe context, membership-validated resolvers.",

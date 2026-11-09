@@ -39,6 +39,8 @@ await platform.shutdown();
 | `@allinone/database-postgres`    | PostgreSQL adapter — transactions, migrations, RLS, soft deletes      |
 | `@allinone/database-mongodb`     | MongoDB adapter — document-native, NoSQL-injection-safe               |
 | `@allinone/database-mysql`       | MySQL/MariaDB adapter — InnoDB, prepared statements, savepoints       |
+| `@allinone/database-sqlite`      | SQLite adapter — `node:sqlite`, JSON docs, zero deps                  |
+| `@allinone/database-redis`       | Redis adapter — KV documents + cache provider                         |
 | `@allinone/tenancy`              | Multi-tenancy: registry, explicit context, safe resolvers             |
 | `@allinone/auth`                 | Identity, sessions, RBAC + ABAC (default-deny)                        |
 | `@allinone/cms`                  | Headless CMS: collections, revisions, publishing                      |
@@ -77,11 +79,13 @@ pnpm example      # runnable example app
 
 Phase 0–6 milestones are implemented with tests. The PostgreSQL
 (`@allinone/database-postgres`, pg-mem + live PG17), MongoDB
-(`@allinone/database-mongodb`, local mongod), and MySQL/MariaDB
-(`@allinone/database-mysql`, Docker MariaDB 11) adapters are all
-conformance-tested. SSO/TOTP MFA, schema-per-tenant, and deployment
-guides are shipped; CI + Pages deploy release pipeline; test-proven
-variants cover SQLite/Redis/passkeys next. No payment provider is
+(`@allinone/database-mongodb`, local mongod), MySQL/MariaDB
+(`@allinone/database-mysql`, Docker MariaDB 11), SQLite
+(`@allinone/database-sqlite`, `:memory:`), and Redis
+(`@allinone/database-redis`, Docker Redis 7) adapters are all
+conformance-tested. SSO/TOTP MFA, schema-per-tenant, deployment
+guides, and CI + Pages pipelines are shipped. Next: Redis wiring into
+infra caches, passkeys/WebAuthn, MSSQL. No payment provider is
 hard-coupled; billing is adapter-based.
 
 Run live tests against Docker Postgres:

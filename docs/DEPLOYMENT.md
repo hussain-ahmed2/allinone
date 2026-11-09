@@ -9,8 +9,8 @@
                       │
         ┌─────────────┼─────────────┐
         ▼             ▼             ▼
-   Postgres 17    MongoDB 8    S3 / local storage
-   (private)      (private)    (media, backups)
+   Postgres 17    MongoDB 8    MySQL 8      Redis 7 (optional KV/cache)
+   (private)      (private)    (private)
 ```
 
 Datastores stay **private** (no external port binding); only the app opens
@@ -34,6 +34,9 @@ Prettier + tests) in CI before every deploy.
 ```ts
 import { createPostgresAdapter } from "@allinone/database-postgres";
 import { createMongoAdapter } from "@allinone/database-mongodb";
+import { createMysqlAdapter } from "@allinone/database-mysql";
+import { createSqliteAdapter } from "@allinone/database-sqlite";
+import { createRedisAdapter } from "@allinone/database-redis";
 
 // Postgres (shared-schema default)
 const db = createPostgresAdapter({ connectionString: process.env["DATABASE_URL"] });
@@ -49,6 +52,18 @@ await db.createTenantSchema("acme", ["users", "posts"]);
 
 // Mongo (shared-schema default; transactions need a replica set)
 const db = createMongoAdapter({ connectionString: process.env["MONGO_URL"] });
+
+// MySQL / MariaDB (InnoDB, prepared statements, savepoints)
+const db = createMysqlAdapter({
+  connectionString: "mysql://user:pass@host:3306/allinone",
+});
+
+// SQLite (embedded; :memory: for tests, file for persistence)
+const db = createSqliteAdapter({ path: "./data/app.db" });
+
+// Redis KV documents + cache (transactions honestly unavailable)
+const db = createRedisAdapter({ url: process.env["REDIS_URL"] });
+await db.connect();
 
 // Database-per-tenant
 const db = createMongoAdapter({

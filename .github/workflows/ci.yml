@@ -35,10 +35,15 @@ jobs:
           MARIADB_PASSWORD: testpass
         ports:
           - 3307:3306
+      redis:
+        image: redis:7
+        ports:
+          - 6380:6379
     env:
       POSTGRES_TEST_URL: postgres://postgres:testpass@localhost:5433/allinone_test
       MONGO_TEST_URL: mongodb://127.0.0.1:27017
       MYSQL_TEST_URL: mysql://test:testpass@127.0.0.1:3307/allinone_test
+      REDIS_TEST_URL: redis://127.0.0.1:6380
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,7 +58,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - name: Wait for services
-        run: node -e "const net=require('net');async function w(port,name){const t0=Date.now();for(;;){try{await new Promise((res,rej)=>{const s=net.connect(port,'127.0.0.1');s.once('connect',()=>{s.end();res()});s.once('error',rej)});console.log(name+' ready in '+Math.round((Date.now()-t0)/1000)+'s');return}catch{}};if(Date.now()-t0>90000){console.error(name+' timed out');process.exit(1)}await new Promise(r=>setTimeout(r,2000))}};Promise.all([w(5433,'postgres'),w(27017,'mongo'),w(3307,'mysql')]).then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)})"
+        run: node .github/workflows/wait-for-services.mjs
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Checks (build + typecheck + lint + format + tests)

@@ -151,10 +151,12 @@ pre code {
 
 .sidebar-group {
   border-top: 2px solid var(--ink);
+  padding-bottom: 12px;
+  margin-top: 8px;
 }
 
 .sidebar-group-title {
-  padding: 10px 14px 4px;
+  padding: 14px 14px 6px;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -193,8 +195,8 @@ pre code {
 .page-header {
   border: 2px solid var(--ink);
   box-shadow: var(--shadow);
-  padding: 28px 32px;
-  margin-bottom: 8px;
+  padding: 32px 36px;
+  margin-bottom: 32px;
 }
 
 .page-header h1 {
@@ -272,7 +274,12 @@ pre code {
 }
 
 .section {
-  margin-top: 28px;
+  margin-top: 40px;
+}
+
+.section + .section {
+  border-top: 2px solid var(--line);
+  padding-top: 28px;
 }
 
 .section > h2 {
@@ -287,7 +294,8 @@ pre code {
 .box-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .box {
@@ -403,6 +411,7 @@ th {
 .code-block {
   border: 2px solid var(--ink);
   background: var(--paper);
+  margin: 16px 0 8px;
 }
 
 .code-title {
