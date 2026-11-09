@@ -1,0 +1,58 @@
+# CI: run the full gate on every push/PR (build, typecheck, lint, format, tests).
+# Spec rule: "Keep CI checks mandatory" — a red CI blocks merges.
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: allinone_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping:1})'"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      POSTGRES_TEST_URL: postgres://postgres:testpass@localhost:5433/allinone_test
+      MONGO_TEST_URL: mongodb://127.0.0.1:27017
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # pnpm 11 needs Node >= 22.13 (uses node:sqlite); use 24 LTS.
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Checks (build + typecheck + lint + format + tests)
+        run: pnpm checks

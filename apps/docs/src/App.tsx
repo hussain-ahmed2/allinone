@@ -31,6 +31,16 @@ const NAV = [
   { id: "presets", label: "Presets" },
   { id: "security", label: "Security model" },
   { id: "roadmap", label: "Roadmap" },
+  {
+    id: "api-reference",
+    label: "API reference ↗",
+    href: "https://github.com/hussain-ahmed2/allinone/blob/main/docs/API.md",
+  },
+  {
+    id: "troubleshooting",
+    label: "Troubleshooting ↗",
+    href: "https://github.com/hussain-ahmed2/allinone/blob/main/docs/TROUBLESHOOTING.md",
+  },
 ] as const;
 
 const MODULES = [
@@ -131,7 +141,13 @@ export function App() {
           <ul>
             {NAV.map((item) => (
               <li key={item.id}>
-                <a href={`#${item.id}`}>{item.label}</a>
+                {"href" in item && item.href ? (
+                  <a href={item.href} target="_blank" rel="noreferrer">
+                    {item.label}
+                  </a>
+                ) : (
+                  <a href={`#${item.id}`}>{item.label}</a>
+                )}
               </li>
             ))}
           </ul>
