@@ -133,6 +133,9 @@ new RateLimiter(max, windowSeconds)  .allow(key): boolean
 createLogger(sink): { info, warn, error }      // structured JSON lines
 createSmtpMailer(opts): NotificationProvider    // nodemailer SMTP + templates
 escapeHtml(s) / renderTemplate(tpl, vars)
+createWorkflowEngine(): WorkflowEngine          // tasks, approvals, retries
+Workflows: engine.register/define/start/execute/approve/reject/history (tenant-scoped)
+buildAdminManifest({ actor, tenantId, rolesById, config? }): AdminManifest
 createWorkflowEngine(): WorkflowEngine         // tasks, approvals, conditionals, retries
 WorkflowEngine.register(name, handler) / .define(definition)
 engine.start(definitionId, { tenantId, data? }): RunRecord

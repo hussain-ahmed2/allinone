@@ -205,6 +205,9 @@ importers:
 
   packages/infra:
     dependencies:
+      '@allinone/auth':
+        specifier: workspace:*
+        version: link:../auth
       nodemailer:
         specifier: ^10.4.0
         version: 10.4.0
