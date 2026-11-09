@@ -327,6 +327,22 @@ export function InfraPage() {
         }
       />
       <Code>{INFRA_EXAMPLE}</Code>
+      <Code title="Workflows — approval gate + retries">
+        {`engine.register("notify", async (input) => sendEmail(input));
+engine.define({
+  id: "onboard",
+  name: "Onboarding",
+  steps: [
+    { id: "review", type: "approval", label: "Manager review" },
+    { id: "notify", type: "task", action: "notify",
+      retry: { maxAttempts: 3, backoffMs: 100 } },
+  ],
+});
+const run = engine.start("onboard", { tenantId });
+await engine.execute(run.id);   // pauses at waiting-approval
+await engine.approve(run.id);   // resumes → completes
+await engine.reject(run.id);    // or cancels terminally`}
+      </Code>
       <Note>
         Email: <code>{"createSmtpMailer({ host, user, pass, from })"}</code> implements the shared{" "}
         <code>NotificationProvider</code> interface — inject a fake <code>sendMail</code> for tests.
