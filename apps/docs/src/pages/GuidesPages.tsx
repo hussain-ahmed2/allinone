@@ -361,6 +361,20 @@ const index = createSearchIndex();
 index.add({ id: "p1", tenantId, text: "Deploying production guides" });
 index.search({ tenantId, query: "deploy guides" });`}
       </Code>
+      <Code title="Webhooks + notifications">
+        {`// Webhooks: tenant-scoped subscriptions, signed delivery, dead-letter log.
+webhooks.subscribe({ id, tenantId, url, secret, events: ["user.created"] });
+webhooks.dispatch("t1", { event: "user.created", payload: { id } });
+await webhooks.processDue();              // call on a timer (e.g. every 30s)
+webhooks.deadLetters("t1");               // inspect/replay after maxAttempts
+
+// Notifications: in-app inbox + optional provider delivery, preference-gated.
+const center = createNotificationCenter(mailer);
+center.setPreferences(userId, { email: true, inApp: true, push: false });
+await center.notify({ tenantId, userId, email, title: "Welcome", body: "hello" });
+center.list(tenantId, userId, true);      // unread first
+center.markAllRead(tenantId, userId);`}
+      </Code>
       <Note>
         Email: <code>{"createSmtpMailer({ host, user, pass, from })"}</code> implements the shared{" "}
         <code>NotificationProvider</code> interface — inject a fake <code>sendMail</code> for tests.

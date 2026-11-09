@@ -144,6 +144,13 @@ createSmtpMailer(opts): NotificationProvider    // nodemailer SMTP + templates
 escapeHtml(s) / renderTemplate(tpl, vars)
 createWorkflowEngine(): WorkflowEngine         // tasks, approvals, retries
 Workflows: engine.register/define/start/execute/approve/reject/history (tenant-scoped)
+createWebhookDispatcher(): WebhookDispatcher     // signed dispatch + retries + dead-letter
+dispatcher.subscribe(endpoint) / .dispatch(tenantId, { event, payload })
+dispatcher.processDue() — attempt due deliveries (timer-driven)
+deadLetters(tenantId) / deliveriesByEndpoint(id)
+createNotificationCenter(provider?): NotificationCenter  // prefs + inbox
+.notify({ tenantId, userId, email, title, body }) → { inApp, emailed }
+.list(tenantId, userId) / .markRead / .markAllRead; prefs via setPreferences
 createScheduler(): Scheduler                   // cron (5-field, UTC) + overlap guard
 parseCron(expr) / nextRunAfter(expr, from) — pure next-fire calculator
 searchAcross(adapter, collection, { query, fields, tenantId? }) — OR substring search
