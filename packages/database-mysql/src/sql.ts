@@ -77,10 +77,14 @@ function toText(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** JSON-path expression for one field, e.g. `data ->> '$.address.city'`. */
+/**
+ * JSON-path expression for one field.
+ * `JSON_UNQUOTE(JSON_EXTRACT(...))` works on MySQL 8 AND MariaDB 11 — the
+ * `->>` operator is rejected by MariaDB, so it is avoided entirely.
+ */
 function jsonPath(field: string): string {
   const f = assertField(field);
-  return "(`data` ->> '$." + f.replace(/\./g, ".") + "')";
+  return "JSON_UNQUOTE(JSON_EXTRACT(`data`, '$." + f + "'))";
 }
 
 /** Assert a primitive value is safe for eq/ne/comparison operators. */
@@ -193,7 +197,7 @@ export function buildSelectQuery(
   if (sorts.length > 0) {
     const parts = sorts.map((s) => {
       const f = assertField(s.field);
-      return `(\`data\` ->> '$.${f}') ${s.direction === "asc" ? "ASC" : "DESC"}`;
+      return `JSON_UNQUOTE(JSON_EXTRACT(\`data\`, '$.${f}')) ${s.direction === "asc" ? "ASC" : "DESC"}`;
     });
     text += ` ORDER BY ${parts.join(", ")}`;
   }

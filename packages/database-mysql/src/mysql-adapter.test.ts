@@ -19,9 +19,9 @@ import { createMysqlAdapter, type MysqlAdapter } from "./index.js";
 
 const URL = process.env["MYSQL_TEST_URL"] ?? "mysql://test:testpass@localhost:3307/allinone_test";
 
-/** Tables for this run — dropped first so re-runs never hit duplicate keys. */
-const RUN = `r${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
-const t = (name: string): string => `${name}_${RUN}`;
+/** Unique table per test — table reuse across tests collides on PKs. */
+let testIndex = 0;
+const t = (name: string): string => `${name}_t${String(testIndex++)}_${Date.now().toString(36)}`;
 
 describe("mysql adapter (live MariaDB)", () => {
   let adapter: MysqlAdapter | undefined;
