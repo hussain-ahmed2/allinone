@@ -14,3 +14,6 @@ next-env.d.ts
 packages/*/src/**/*.d.ts
 packages/*/src/**/*.js
 packages/*/src/**/*.map
+
+# TypeScript incremental build info
+*.tsbuildinfo
