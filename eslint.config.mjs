@@ -19,6 +19,7 @@ export default defineConfig([
       "**/dist/**",
       "**/node_modules/**",
       "apps/docs/dist/**",
+      "**/.next/**",
       // Stray tsc outputs must never be linted (they are not project inputs).
       "packages/*/src/**/*.d.ts",
       "packages/*/src/**/*.js",

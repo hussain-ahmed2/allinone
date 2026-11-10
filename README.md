@@ -76,6 +76,7 @@ pnpm docs:dev     # documentation site
 pnpm example      # framework-free example app
 pnpm example:express   # Express integration
 pnpm example:fastify   # Fastify integration
+pnpm example:next      # Next.js App Router integration
 ```
 
 ## Status

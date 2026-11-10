@@ -32,28 +32,29 @@ Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
 
 ## Workspace layout
 
-| Path                         | Package                       | Purpose                                                 |
-| ---------------------------- | ----------------------------- | ------------------------------------------------------- |
-| `packages/platform`          | `allinone`                    | Public entry — `createPlatform()`, lifecycle, container |
-| `packages/config`            | `@allinone/config`            | Typed config, defaults, security invariants             |
-| `packages/presets`           | `@allinone/presets`           | starter / saas / enterprise / cms / ecommerce           |
-| `packages/database`          | `@allinone/database`          | Adapter contract, typed fields, memory adapter          |
-| `packages/database-postgres` | `@allinone/database-postgres` | PostgreSQL adapter (pg-mem unit + live PG17 tests)      |
-| `packages/database-mongodb`  | `@allinone/database-mongodb`  | MongoDB adapter (local mongod tests)                    |
-| `packages/database-mysql`    | `@allinone/database-mysql`    | MySQL/MariaDB adapter (Docker MariaDB tests)            |
-| `packages/database-sqlite`   | `@allinone/database-sqlite`   | SQLite adapter (`:memory:` tests)                       |
-| `packages/database-mssql`    | `@allinone/database-mssql`    | MSSQL adapter (CI-only live)                            |
-| `packages/database-redis`    | `@allinone/database-redis`    | Redis adapter (Docker Redis tests)                      |
-| `packages/storage`           | `@allinone/storage`           | Local FS + S3 providers, media library                  |
-| `packages/tenancy`           | `@allinone/tenancy`           | Tenant registry, explicit context, resolvers            |
-| `packages/auth`              | `@allinone/auth`              | Identity, sessions, RBAC/ABAC                           |
-| `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                      |
-| `packages/infra`             | `@allinone/infra`             | Audit, API keys, webhooks, cache, subscriptions         |
-| `packages/testing`           | `@allinone/testing`           | Shared test helpers                                     |
-| `apps/docs`                  | `@allinone/docs`              | Documentation site (Vite + React Router)                |
-| `apps/example`               | `@allinone/example`           | Runnable example SaaS app (framework-free)              |
-| `apps/example-express`       | `@allinone/example-express`   | Express integration (runnable, tested)                  |
-| `apps/example-fastify`       | `@allinone/example-fastify`   | Fastify integration (runnable, inject-tested)           |
+| Path                         | Package                       | Purpose                                                             |
+| ---------------------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `packages/platform`          | `allinone`                    | Public entry — `createPlatform()`, lifecycle, container             |
+| `packages/config`            | `@allinone/config`            | Typed config, defaults, security invariants                         |
+| `packages/presets`           | `@allinone/presets`           | starter / saas / enterprise / cms / ecommerce                       |
+| `packages/database`          | `@allinone/database`          | Adapter contract, typed fields, memory adapter                      |
+| `packages/database-postgres` | `@allinone/database-postgres` | PostgreSQL adapter (pg-mem unit + live PG17 tests)                  |
+| `packages/database-mongodb`  | `@allinone/database-mongodb`  | MongoDB adapter (local mongod tests)                                |
+| `packages/database-mysql`    | `@allinone/database-mysql`    | MySQL/MariaDB adapter (Docker MariaDB tests)                        |
+| `packages/database-sqlite`   | `@allinone/database-sqlite`   | SQLite adapter (`:memory:` tests)                                   |
+| `packages/database-mssql`    | `@allinone/database-mssql`    | MSSQL adapter (CI-only live)                                        |
+| `packages/database-redis`    | `@allinone/database-redis`    | Redis adapter (Docker Redis tests)                                  |
+| `packages/storage`           | `@allinone/storage`           | Local FS + S3 providers, media library                              |
+| `packages/tenancy`           | `@allinone/tenancy`           | Tenant registry, explicit context, resolvers                        |
+| `packages/auth`              | `@allinone/auth`              | Identity, sessions, RBAC/ABAC                                       |
+| `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                                  |
+| `packages/infra`             | `@allinone/infra`             | Audit, API keys, webhooks, cache, subscriptions                     |
+| `packages/testing`           | `@allinone/testing`           | Shared test helpers                                                 |
+| `apps/docs`                  | `@allinone/docs`              | Documentation site (Vite + React Router)                            |
+| `apps/example`               | `@allinone/example`           | Runnable example SaaS app (framework-free)                          |
+| `apps/example-express`       | `@allinone/example-express`   | Express integration (runnable, tested)                              |
+| `apps/example-fastify`       | `@allinone/example-fastify`   | Fastify integration (runnable, inject-tested)                       |
+| `apps/example-next`          | `@allinone/example-next`      | Next.js App Router integration (route handlers + server components) |
 
 ## Conventions
 

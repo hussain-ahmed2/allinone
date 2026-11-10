@@ -79,6 +79,7 @@ fastify.get("/health", async () => {
       </Note>
 
       <h2>Next.js (App Router route handlers)</h2>
+      <Code title="Run it">{`pnpm example:next   # http://localhost:3002`}</Code>
       <Code title="app/api/v1/status/route.ts">
         {`import { NextRequest, NextResponse } from "next/server";
 import { createPlatform, presets } from "allinone";

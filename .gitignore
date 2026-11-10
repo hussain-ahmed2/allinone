@@ -7,6 +7,9 @@ out/
 *.log
 .DS_Store
 coverage/
+# Next.js build output (apps/example-next)
+.next/
+next-env.d.ts
 # Stray tsc outputs — builds must use tsconfig.build.json (outDir dist).
 packages/*/src/**/*.d.ts
 packages/*/src/**/*.js
