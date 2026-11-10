@@ -77,6 +77,7 @@ pnpm example      # framework-free example app
 pnpm example:express   # Express integration
 pnpm example:fastify   # Fastify integration
 pnpm example:next      # Next.js App Router integration
+pnpm example:tanstack  # TanStack Start integration
 ```
 
 ## Status

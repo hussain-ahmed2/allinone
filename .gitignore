@@ -17,3 +17,6 @@ packages/*/src/**/*.map
 
 # TypeScript incremental build info
 *.tsbuildinfo
+# TanStack Start build output
+apps/example-tanstack/.tanstack/
+apps/example-tanstack/.output/

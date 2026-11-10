@@ -130,25 +130,27 @@ export const loader = async ({ request }: { request: Request }) => {
       <p>Client components never see enforcement logic — they render what the loaders return.</p>
 
       <h2>TanStack Start (server functions)</h2>
-      <Code title="Server function">
-        {`import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start/server";
+      <Code title="Run it">{`pnpm example:tanstack   # http://localhost:3003`}</Code>
+      <Code title="Server function — platform stays on the server">
+        {`// src/lib/server.ts — handler bodies are stripped from the client bundle
+import { createServerFn } from "@tanstack/react-start";
 
-const getManifest = createServerFn().handler(async () => {
-  const platform = getServerPlatform();      // singleton, server-only
-  const { actor, tenantId } = requireSession(); // cookie → session → user
-  return buildAdminManifest({ actor, tenantId, rolesById: ROLES });
+export const listPosts = createServerFn({ method: "GET" }).handler(async () => {
+  const { getPlatform } = await import("./platform"); // server-only module
+  const p = await getPlatform();
+  return p.cms.findByCollection("posts");
 });
 
-export const Route = createFileRoute("/admin")({
-  loader: () => getManifest(),
-  component: AdminPage,
+// src/routes/index.tsx — loader calls the server function
+export const Route = createFileRoute("/")({
+  loader: () => listPosts(),
+  component: Home,
 });`}
       </Code>
       <Note>
-        TanStack Start runs on Nitro; treat the server functions as your trust boundary. Call{" "}
-        <code>platform.initialize()</code> once at server startup and <code>shutdown()</code> on
-        SIGTERM.
+        TanStack Start needs <code>vite ≥ 8</code> (Rolldown-based). The example verifies the split:
+        the client bundle contains no <code>AsyncLocalStorage</code>, <code>nodemailer</code>, or
+        platform code — only the rendered data crosses the wire.
       </Note>
 
       <h2>Astro (SSG/SSR)</h2>

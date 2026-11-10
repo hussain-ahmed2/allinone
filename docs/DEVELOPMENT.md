@@ -55,6 +55,7 @@ Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
 | `apps/example-express`       | `@allinone/example-express`   | Express integration (runnable, tested)                              |
 | `apps/example-fastify`       | `@allinone/example-fastify`   | Fastify integration (runnable, inject-tested)                       |
 | `apps/example-next`          | `@allinone/example-next`      | Next.js App Router integration (route handlers + server components) |
+| `apps/example-tanstack`      | `@allinone/example-tanstack`  | TanStack Start integration (server functions, Vite 8)               |
 
 ## Conventions
 

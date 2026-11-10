@@ -2,3 +2,6 @@ node_modules/
 dist/
 *.log
 pnpm-lock.yaml
+
+# Generated route tree (TanStack Router CLI output)
+apps/example-tanstack/src/routeTree.gen.ts
