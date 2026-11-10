@@ -53,7 +53,8 @@ assumed framework API.
 | Phase 7l  | MSSQL adapter (T-SQL JSON_VALUE, RLS session ctx)      | ✅ done                                                            |
 | Phase 7m  | Redis permission cache wiring + scheduler + search     | ✅ done                                                            |
 | Phase 7n  | Webhook delivery worker + notification center          | ✅ done                                                            |
-| Phase 7o+ | Coverage audit, admin APIs, MSSQL polish               | ⬜ next                                                            |
+| Phase 7o  | Framework integrations (Express + Fastify runnable)    | ✅ done                                                            |
+| Phase 7p+ | Next.js/Router/TanStack/Astro guides, coverage audit   | ⬜ next (guides written)                                           |
 
 ## Threat model (summary)
 
