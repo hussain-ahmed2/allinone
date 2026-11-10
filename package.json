@@ -23,6 +23,7 @@
     "docs:build": "pnpm --filter @allinone/docs build",
     "example": "pnpm --filter @allinone/example start",
     "example:express": "pnpm --filter @allinone/example-express start",
+    "example:fastify": "pnpm --filter @allinone/example-fastify start",
     "bench": "pnpm build && node benchmarks/bench.mjs"
   },
   "devDependencies": {

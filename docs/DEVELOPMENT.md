@@ -50,8 +50,10 @@ Lint/typecheck strictness (ESLint 10 + typescript-eslint v8):
 | `packages/cms`               | `@allinone/cms`               | Collections, revisions, publishing                      |
 | `packages/infra`             | `@allinone/infra`             | Audit, API keys, webhooks, cache, subscriptions         |
 | `packages/testing`           | `@allinone/testing`           | Shared test helpers                                     |
-| `apps/docs`                  | `@allinone/docs`              | Documentation site (Vite + React)                       |
-| `apps/example`               | `@allinone/example`           | Runnable example SaaS app                               |
+| `apps/docs`                  | `@allinone/docs`              | Documentation site (Vite + React Router)                |
+| `apps/example`               | `@allinone/example`           | Runnable example SaaS app (framework-free)              |
+| `apps/example-express`       | `@allinone/example-express`   | Express integration (runnable, tested)                  |
+| `apps/example-fastify`       | `@allinone/example-fastify`   | Fastify integration (runnable, inject-tested)           |
 
 ## Conventions
 

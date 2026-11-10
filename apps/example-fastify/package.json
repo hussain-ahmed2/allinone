@@ -1,0 +1,23 @@
+{
+  "name": "@allinone/example-fastify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "pnpm build && node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allinone/auth": "workspace:*",
+    "@allinone/infra": "workspace:*",
+    "allinone": "workspace:*",
+    "fastify": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "vitest": "^3.0.0"
+  }
+}

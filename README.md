@@ -73,7 +73,9 @@ pnpm install
 pnpm build
 pnpm test
 pnpm docs:dev     # documentation site
-pnpm example      # runnable example app
+pnpm example      # framework-free example app
+pnpm example:express   # Express integration
+pnpm example:fastify   # Fastify integration
 ```
 
 ## Status
